@@ -2,15 +2,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 export default function WelcomePage() {
   const router = useRouter();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeIntervalRef = useRef<number | null>(null);
-  const [muted, setMuted] = useState(true); // start muted to allow autoplay
-  const [unmuteNeeded, setUnmuteNeeded] = useState(false); // show unmute button if browser blocks unmute
+  const [muted, setMuted] = useState(true); // start muted so browsers allow autoplay
+  const [unmuteNeeded, setUnmuteNeeded] = useState(false);
+
   const TARGET_VOLUME = 0.36;
   const FADE_DURATION_MS = 1400;
   const FADE_STEP_MS = 60;
@@ -22,105 +22,78 @@ export default function WelcomePage() {
     }
   };
 
-  // Try to fade volume up (audio must be playing). The audio starts MUTED to satisfy autoplay rules.
   const fadeIn = () => {
     const audio = audioRef.current;
     if (!audio) return;
     clearFade();
     const steps = Math.max(1, Math.round(FADE_DURATION_MS / FADE_STEP_MS));
-    const step = TARGET_VOLUME / steps;
-    let cur = 0;
+    const stepAmount = TARGET_VOLUME / steps;
     fadeIntervalRef.current = window.setInterval(() => {
-      cur += 1;
-      audio.volume = Math.min(TARGET_VOLUME, (audio.volume || 0) + step);
-      if (cur >= steps || audio.volume >= TARGET_VOLUME - 0.001) {
+      try {
+        audio.volume = Math.min(TARGET_VOLUME, (audio.volume || 0) + stepAmount);
+        if (audio.volume >= TARGET_VOLUME - 0.001) {
+          clearFade();
+          audio.volume = TARGET_VOLUME;
+        }
+      } catch {
         clearFade();
-        audio.volume = TARGET_VOLUME;
       }
     }, FADE_STEP_MS);
   };
 
-  // Attempt to unmute after fade. If browser blocks programmatic unmute, show the unmute button.
-  const attemptUnmute = async () => {
+  // Best-effort start autoplay muted, then attempt to unmute.
+  useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    try {
-      audio.muted = false;
-      // some browsers still block unmute; check whether audio is audible (volume > 0 and not muted)
-      if (!audio.muted) {
-        setMuted(false);
-        setUnmuteNeeded(false);
-      } else {
-        // unlikely, but fallback
-        setMuted(true);
-        setUnmuteNeeded(true);
-      }
-    } catch (err) {
-      // blocked -> keep muted and show unmute control
-      setMuted(true);
-      setUnmuteNeeded(true);
-    }
-  };
 
-  const startAudioAutoplay = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    // Ensure loop and playsInline for mobile
     audio.loop = true;
     audio.playsInline = true;
-    try {
-      audio.muted = true; // start muted so autoplay is allowed
-      audio.volume = 0;
-      await audio.play(); // should succeed if muted
-      fadeIn();
 
-      // After fade, try to unmute. Best-effort: if blocked, show unmute button.
-      setTimeout(async () => {
-        try {
-          // Try to unmute (might be blocked)
-          audio.muted = false;
-          if (!audio.muted) {
-            setMuted(false);
-            setUnmuteNeeded(false);
-          } else {
-            // If still muted, show unmute button
+    const start = async () => {
+      try {
+        audio.muted = true;
+        audio.volume = 0;
+        // allow autoplay (muted)
+        await audio.play();
+        fadeIn();
+
+        // after fade, try to unmute programmatically (may still be blocked)
+        setTimeout(() => {
+          try {
+            audio.muted = false;
+            if (!audio.muted) {
+              setMuted(false);
+              setUnmuteNeeded(false);
+            } else {
+              setMuted(true);
+              setUnmuteNeeded(true);
+            }
+          } catch {
             setMuted(true);
             setUnmuteNeeded(true);
           }
-        } catch {
-          setMuted(true);
-          setUnmuteNeeded(true);
-        }
-      }, FADE_DURATION_MS + 250);
-    } catch (err) {
-      // If even muted autoplay fails (rare), show unmute control
-      setUnmuteNeeded(true);
-      setMuted(true);
-    }
-  };
+        }, FADE_DURATION_MS + 200);
+      } catch {
+        // playback failed; show unmute control so user can start audio
+        setUnmuteNeeded(true);
+        setMuted(true);
+      }
+    };
 
-  useEffect(() => {
-    // start attempt on mount
-    startAudioAutoplay();
+    start();
 
     return () => {
       clearFade();
-      const audio = audioRef.current;
-      if (audio) {
-        try {
-          audio.pause();
-        } catch {}
-      }
+      try {
+        audio.pause();
+      } catch {}
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // explicit user toggle
   const handleToggle = async () => {
     const audio = audioRef.current;
     if (!audio) return;
     if (muted) {
-      // user wants sound -> ensure playing and unmuted
       try {
         await audio.play();
         audio.muted = false;
@@ -128,11 +101,11 @@ export default function WelcomePage() {
         setMuted(false);
         setUnmuteNeeded(false);
       } catch {
-        // If still blocked, keep muted but show button
+        // still blocked: show unmute needed
         setUnmuteNeeded(true);
+        setMuted(true);
       }
     } else {
-      // user mutes
       audio.muted = true;
       setMuted(true);
     }
@@ -156,7 +129,6 @@ export default function WelcomePage() {
         }}
       >
         <div className="flex flex-col items-center text-center gap-6">
-          {/* logo + shimmer ring (shimmer made more visible) */}
           <div className="relative animate-logo-lift">
             <div
               aria-hidden
@@ -164,7 +136,8 @@ export default function WelcomePage() {
               style={{ width: 168, height: 168 }}
             />
             <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-white/90 shadow-md">
-              <Image src="/logo.png" alt="Greanly logo" width={92} height={92} className="object-contain" />
+              {/* plain img (safer for SSR/build while debugging) */}
+              <img src="/logo.png" alt="Greanly logo" width={92} height={92} />
             </div>
           </div>
 
@@ -191,7 +164,6 @@ export default function WelcomePage() {
           <div className="mt-6 animate-fade-up delay-300">
             <button
               onClick={() => {
-                // ensure audio playing start (best-effort) and navigate
                 const audio = audioRef.current;
                 if (audio && audio.paused) {
                   void audio.play().catch(() => {});
@@ -212,11 +184,10 @@ export default function WelcomePage() {
 
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-sm text-slate-600/80 z-10">Built with care • AI + practical sustainability tips</div>
 
-      {/* Ambient audio file (put file at /public/ambient-forest.mp3) */}
-      {/* Note: start muted to allow autoplay; we try to unmute programmatically after fade. */}
-      <audio ref={audioRef} src="/ambient-forest.mp3" preload="auto" autoPlay loop playsInline />
+      {/* Ambient audio file — place /public/ambient-forest.mp3 */}
+      <audio ref={audioRef} src="/ambient-forest.mp3" preload="auto" autoPlay loop />
 
-      {/* compact unmute toggle (visible if unmute required or user toggles) */}
+      {/* compact unmute toggle */}
       <button
         onClick={handleToggle}
         aria-pressed={!muted}
@@ -245,7 +216,6 @@ export default function WelcomePage() {
         .animate-fade-up.delay-200 { animation-delay: 240ms; }
         .animate-fade-up.delay-300 { animation-delay: 360ms; }
 
-        /* clearer shimmer ring */
         .shimmer-ring {
           background: radial-gradient(circle at 30% 30%, rgba(165,255,205,0.95) 0%, rgba(165,255,205,0.6) 18%, rgba(255,255,255,0.02) 60%);
           filter: blur(28px);
