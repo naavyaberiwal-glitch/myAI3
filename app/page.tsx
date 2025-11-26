@@ -144,13 +144,32 @@ export default function Chat() {
             <ChatHeader>
               <ChatHeaderBlock />
               <ChatHeaderBlock className="justify-center items-center">
-                <img
-  src="/logo.png"
-  alt="Logo"
-  style={{
-    width: "56px",
-    height: "56px",
-    objectFit: "contain",
+                <div style={{ position: "relative", display: "inline-block", marginRight: "12px" }}>
+  <img
+    src="/logo.png"
+    alt="Logo"
+    style={{
+      width: "72px",      // increase or decrease as you like
+      height: "72px",
+      objectFit: "contain",
+    }}
+  />
+
+  {/* Online dot */}
+  <span
+    style={{
+      position: "absolute",
+      bottom: "4px",
+      right: "4px",
+      width: "12px",
+      height: "12px",
+      backgroundColor: "#22c55e",   // bright green
+      borderRadius: "50%",
+      border: "3px solid white",    // cleaner border for larger icon
+    }}
+  />
+</div>
+
   }}
 />
 
