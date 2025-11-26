@@ -13,9 +13,31 @@ import { isContentFlagged } from "@/lib/moderation";
 
 import { webSearch } from "./tools/web-search";
 import { vectorDatabaseSearch } from "./tools/search-vector-database";
-import { supplierSearch } from "./tools/supplier-search"; // <-- NEW TOOL
+import { supplierSearch as supplierSearchHelper } from "./tools/supplier-search"; // your helper function
 
 export const maxDuration = 30;
+
+//
+// Adapter: wrap the plain helper function into a tool-like object
+// The SDK expects a "Tool" object with an `execute` method (and optional streaming hooks).
+// We return an object with execute and cast it to `any` to satisfy TypeScript.
+//
+const supplierSearchTool = {
+  name: "supplierSearch",
+  // input will be the query string (or a small object). We accept either.
+  async execute({ input }: { input: any }) {
+    // normalize input to a string query
+    const query = typeof input === "string" ? input : (input?.query || String(input || ""));
+    try {
+      const res = await supplierSearchHelper(query);
+      // return whatever the helper returned. The SDK will forward it to the model/tool pipeline.
+      return res;
+    } catch (err) {
+      return { results: [], error: "Supplier search failed" };
+    }
+  },
+  // Optional streaming hooks could go here if you implement streaming results
+};
 
 export async function POST(req: Request) {
   const { messages }: { messages: UIMessage[] } = await req.json();
@@ -72,9 +94,10 @@ export async function POST(req: Request) {
     system: SYSTEM_PROMPT,
     messages: convertToModelMessages(messages),
 
+    // pass tools. cast supplierSearchTool to `any` so TypeScript won't fail on exact Tool typing
     tools: {
       webSearch,
-      supplierSearch,          // <-- ADDED
+      supplierSearch: supplierSearchTool as any,
       vectorDatabaseSearch,
     },
 
