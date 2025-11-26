@@ -23,28 +23,18 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 
+/* ---------------------- SCHEMA ---------------------- */
 const formSchema = z.object({
-  message: z
-    .string()
-    .min(1, "Message cannot be empty.")
-    .max(2000, "Message must be at most 2000 characters."),
+  message: z.string().min(1).max(2000),
 });
 
-/* STORAGE */
+/* ---------------------- STORAGE ---------------------- */
 const STORAGE_KEY = "chat-messages";
 
-type StorageData = {
-  messages: UIMessage[];
-  durations: Record<string, number>;
-};
-
-const loadMessagesFromStorage = () => {
+const loadStorage = () => {
   if (typeof window === "undefined") return { messages: [], durations: {} };
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return { messages: [], durations: {} };
-
-    const parsed = JSON.parse(stored);
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
     return {
       messages: parsed.messages || [],
       durations: parsed.durations || {},
@@ -54,18 +44,15 @@ const loadMessagesFromStorage = () => {
   }
 };
 
-const saveMessagesToStorage = (
-  messages: UIMessage[],
-  durations: Record<string, number>
-) => {
+const saveStorage = (messages: UIMessage[], durations: any) => {
   if (typeof window === "undefined") return;
   localStorage.setItem(
     STORAGE_KEY,
-    JSON.stringify({ messages, durations } as StorageData)
+    JSON.stringify({ messages, durations })
   );
 };
 
-/* BUSINESS CONTEXT EXTRACTION */
+/* ---------------------- PROFILE TYPES ---------------------- */
 type BusinessProfile = {
   industry?: string;
   materials?: string;
@@ -73,50 +60,62 @@ type BusinessProfile = {
   goal?: string;
 };
 
-function extractProfileFromMessages(messages: UIMessage[]): BusinessProfile | null {
-  const userMessages = messages.filter((m) => m.role === "user");
-  if (userMessages.length === 0) return null;
+/* ---------------------- STRUCTURED EXTRACTION ---------------------- */
+function extractProfile(messages: UIMessage[]): BusinessProfile | null {
+  const userMsgs = messages.filter((m) => m.role === "user");
+  if (!userMsgs.length) return null;
 
-  for (let i = userMessages.length - 1; i >= 0; i--) {
-    const text = (userMessages[i].parts || [])
-      .filter((p: any) => p.type === "text")
-      .map((p: any) => p.text)
-      .join("\n")
-      .trim();
+  for (let i = userMsgs.length - 1; i >= 0; i--) {
+    const text =
+      userMsgs[i].parts
+        ?.filter((p: any) => p.type === "text")
+        ?.map((p: any) => p.text)
+        ?.join(" ") || "";
 
-    if (!text) continue;
+    if (!text.trim()) continue;
 
-    const industryMatch = text.match(/Industry\s*:\s*(.+)/i);
-    const materialsMatch = text.match(/Materials?\s*:\s*(.+)/i);
-    const locationMatch = text.match(/Location\s*:\s*(.+)/i);
-    const goalMatch = text.match(/Goal\s*:\s*(.+)/i);
+    const ind = text.match(/Industry\s*:\s*(.+)/i)?.[1]?.trim();
+    const mat = text.match(/Materials?\s*:\s*(.+)/i)?.[1]?.trim();
+    const loc = text.match(/Location\s*:\s*(.+)/i)?.[1]?.trim();
+    const goal = text.match(/Goal\s*:\s*(.+)/i)?.[1]?.trim();
 
-    if (industryMatch || materialsMatch || locationMatch || goalMatch) {
-      return {
-        industry: industryMatch?.[1]?.trim(),
-        materials: materialsMatch?.[1]?.trim(),
-        location: locationMatch?.[1]?.trim(),
-        goal: goalMatch?.[1]?.trim(),
-      };
-    }
+    if (ind || mat || loc || goal)
+      return { industry: ind, materials: mat, location: loc, goal };
   }
+  return null;
+}
+
+/* ---------------------- NLP-LITE INFERENCE ---------------------- */
+function inferProfile(text: string | undefined): BusinessProfile | null {
+  if (!text) return null;
+  const t = text.toLowerCase();
+
+  const industryMap: Record<string, string[]> = {
+    printing: ["printing", "printer", "offset", "press"],
+    apparel: ["fabric", "clothing", "apparel", "garment", "textile"],
+    food: ["restaurant", "cafe", "kitchen", "bakery", "food"],
+    packaging: ["packaging", "boxes", "cartons", "pouches"],
+  };
+
+  for (const [industry, words] of Object.entries(industryMap)) {
+    if (words.some((w) => t.includes(w))) return { industry };
+  }
+
+  if (t.includes("paper")) return { materials: "paper" };
+  if (t.includes("plastic") || t.includes("poly")) return { materials: "plastic" };
+  if (t.includes("cotton") || t.includes("fabric")) return { materials: "fabric" };
+
+  const cities = ["mumbai", "delhi", "pune", "jaipur", "kolkata", "bangalore"];
+  for (const c of cities) if (t.includes(c)) return { location: c };
 
   return null;
 }
 
-/* SUGGESTIONS BASED ON CONTEXT */
-function suggestionsForProfile(profile: BusinessProfile) {
-  const defaultSuggestions = [
-    "Tell me how to reduce waste",
-    "Help me source sustainable materials",
-    "Make my packaging greener",
-  ];
+/* ---------------------- SUGGESTION LOGIC ---------------------- */
+function suggestionsFor(profile: BusinessProfile | null): string[] {
+  if (!profile) return [];
 
-  if (!profile?.industry) return defaultSuggestions;
-
-  const industry = profile.industry.toLowerCase();
-
-  if (industry.includes("printing")) {
+  if (profile.industry?.toLowerCase().includes("printing")) {
     return [
       "Green Practices in printing",
       "Sustainable sourcing options",
@@ -124,7 +123,7 @@ function suggestionsForProfile(profile: BusinessProfile) {
     ];
   }
 
-  if (industry.includes("apparel")) {
+  if (profile.industry?.toLowerCase().includes("apparel")) {
     return [
       "Sustainable fabric options",
       "Reduce water in dyeing",
@@ -132,7 +131,10 @@ function suggestionsForProfile(profile: BusinessProfile) {
     ];
   }
 
-  if (industry.includes("food") || industry.includes("restaurant")) {
+  if (
+    profile.industry?.includes("food") ||
+    profile.industry?.includes("restaurant")
+  ) {
     return [
       "Reduce food waste steps",
       "Local sourcing options",
@@ -140,23 +142,23 @@ function suggestionsForProfile(profile: BusinessProfile) {
     ];
   }
 
-  return defaultSuggestions;
+  if (profile.materials === "paper")
+    return ["Find FSC suppliers", "Optimize print runs", "Reduce paper waste"];
+
+  return ["Tell me how to reduce waste", "Help me source better materials"];
 }
 
-/* MAIN CHAT COMPONENT */
+/* ============================================================
+   MAIN CHAT COMPONENT
+   ============================================================ */
 export default function Chat() {
   const [isClient, setIsClient] = useState(false);
   const [durations, setDurations] = useState<Record<string, number>>({});
-  const welcomeRef = useRef(false);
-  const [profile, setProfile] = useState<BusinessProfile | null>(null);
-
-  const suggestionListRef = useRef<string[]>([]);
+  const welcomeSeen = useRef(false);
+  const suggestionsRef = useRef<string[]>([]);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const stored = typeof window !== "undefined"
-    ? loadMessagesFromStorage()
-    : { messages: [], durations: {} };
-
+  const stored = typeof window !== "undefined" ? loadStorage() : { messages: [], durations: {} };
   const [initialMessages] = useState<UIMessage[]>(stored.messages);
 
   const { messages, sendMessage, status, stop, setMessages } = useChat({
@@ -171,88 +173,113 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
-    if (isClient) saveMessagesToStorage(messages, durations);
+    if (isClient) saveStorage(messages, durations);
   }, [messages, durations, isClient]);
 
-  /* EXTRACT PROFILE + UPDATE SUGGESTIONS */
+  /* ------------------------------------------------------------
+     PROFILE + SMART SUGGESTION LOGIC
+     ------------------------------------------------------------ */
   useEffect(() => {
-    const p = extractProfileFromMessages(messages);
-    setProfile(p);
-    suggestionListRef.current = suggestionsForProfile(p || {});
+    const userMsgs = messages.filter((m) => m.role === "user");
+    const lastText =
+      userMsgs.at(-1)?.parts
+        ?.filter((p: any) => p.type === "text")
+        ?.map((p: any) => p.text)
+        ?.join(" ") || "";
+
+    const structured = extractProfile(messages);
+    const inferred = structured ? null : inferProfile(lastText);
+
+    const profile = structured || inferred || null;
+
+    const triggerWords = ["suggest", "recommend", "options", "help me", "guide me"];
+    const askedHelp = triggerWords.some((t) =>
+      lastText.toLowerCase().includes(t)
+    );
+
+    if (profile || askedHelp) {
+      suggestionsRef.current = suggestionsFor(profile);
+    } else {
+      suggestionsRef.current = [];
+    }
   }, [messages]);
 
-  /* WELCOME MESSAGE */
+  /* ------------------------------------------------------------
+     WELCOME MESSAGE
+     ------------------------------------------------------------ */
   useEffect(() => {
-    if (!isClient || initialMessages.length > 0 || welcomeRef.current) return;
+    if (!isClient || welcomeSeen.current || initialMessages.length > 0) return;
 
-    const welcomeMessage: UIMessage = {
-      id: `welcome-${Date.now()}`,
+    const welcomeMsg: UIMessage = {
+      id: "welcome-" + Date.now(),
       role: "assistant",
       parts: [{ type: "text", text: WELCOME_MESSAGE }],
     };
 
-    setMessages([welcomeMessage]);
-    saveMessagesToStorage([welcomeMessage], {});
-    welcomeRef.current = true;
-  }, [isClient, initialMessages.length, setMessages]);
+    setMessages([welcomeMsg]);
+    saveStorage([welcomeMsg], {});
+    welcomeSeen.current = true;
+  }, [isClient]);
 
-  /* FORM */
+  /* ------------------------------------------------------------
+     FORM SUBMIT
+     ------------------------------------------------------------ */
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: { message: "" },
   });
 
-  const onSubmit = (data: any) => {
-    sendMessage({ text: data.message });
+  const onSubmit = (vals: any) => {
+    sendMessage({ text: vals.message });
     form.reset();
   };
 
+  /* ------------------------------------------------------------
+     CLEAR CHAT
+     ------------------------------------------------------------ */
   function clearChat() {
     setMessages([]);
     setDurations({});
-    saveMessagesToStorage([], {});
+    saveStorage([], {});
     toast.success("Chat cleared");
   }
 
-  /* CLICKING SUGGESTION */
-  function handleSuggestionClick(s: string) {
-    form.setValue("message", s);
-
+  /* ------------------------------------------------------------
+     CLICKING A SUGGESTION
+     ------------------------------------------------------------ */
+  function clickSuggestion(text: string) {
+    form.setValue("message", text);
     setTimeout(() => {
       inputRef.current?.focus();
-      inputRef.current?.setSelectionRange(s.length, s.length);
-    }, 10);
+      inputRef.current?.setSelectionRange(text.length, text.length);
+    }, 20);
   }
 
-  /* ==== NEW SUGGESTION BAR ==== */
+  /* ------------------------------------------------------------
+     SUGGESTION BAR (ONLY WHEN NEEDED)
+     ------------------------------------------------------------ */
   const SuggestionsBar = () => {
-    const suggs = suggestionListRef.current;
-    if (!suggs?.length) return null;
+    const list = suggestionsRef.current;
+    if (!list.length) return null;
 
     return (
-      <div
-        className="w-full flex justify-center pointer-events-auto"
-        style={{ zIndex: 60 }}
-      >
+      <div className="w-full flex justify-center pointer-events-auto">
         <div className="max-w-3xl w-full px-4">
           <div
             className="overflow-x-auto scrollbar-hide"
             style={{
-              // big right padding so last chip never hides under the input send button
-              paddingRight: "160px",
-              // ensure chips are not clipped
-              boxSizing: "content-box",
+              paddingRight: "200px",
+              overflowY: "visible",
             }}
           >
-            <div className="flex flex-nowrap items-center gap-3 py-2 min-w-full">
-              {suggs.map((s, i) => (
+            <div className="flex flex-nowrap gap-3 py-2">
+              {list.map((txt, i) => (
                 <button
                   key={i}
-                  onClick={() => handleSuggestionClick(s)}
-                  className="suggestion-chip whitespace-nowrap px-4 py-2 bg-gray-100 hover:bg-gray-200 text-sm text-gray-800 shadow-sm"
-                  type="button"
+                  onClick={() => clickSuggestion(txt)}
+                  className="suggestion-chip bg-gray-100 hover:bg-gray-200 whitespace-nowrap px-4 py-2 text-sm rounded-full shadow-sm"
                 >
-                  {s}
+                  {txt}
                 </button>
               ))}
             </div>
@@ -262,30 +289,30 @@ export default function Chat() {
     );
   };
 
-  /* RENDER */
+  /* ------------------------------------------------------------
+     RENDER
+     ------------------------------------------------------------ */
   return (
-    <div className="flex h-screen items-center justify-center font-sans dark:bg-black">
+    <div className="flex h-screen justify-center dark:bg-black">
       <main className="w-full h-screen relative">
 
         {/* HEADER */}
-        <div className="fixed top-0 left-0 right-0 z-50 bg-linear-to-b from-background via-background/50 to-transparent pb-16 dark:bg-black">
+        <div className="fixed top-0 left-0 right-0 z-50 pb-16 bg-linear-to-b from-background via-background/50 dark:bg-black">
           <ChatHeader>
             <ChatHeaderBlock />
             <ChatHeaderBlock className="justify-center items-center">
-              <div className="relative inline-block mr-4 align-middle">
+              <div className="relative inline-block mr-4">
                 <Image
                   src="/logo.png"
-                  alt="Greanly Avatar"
                   width={60}
                   height={60}
-                  className="rounded-full object-contain"
+                  alt="Greanly Avatar"
+                  className="rounded-full"
                 />
                 <span className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
               </div>
-
-              <p className="tracking-tight">Chat with {AI_NAME}</p>
+              <p>Chat with {AI_NAME}</p>
             </ChatHeaderBlock>
-
             <ChatHeaderBlock className="justify-end">
               <Button variant="outline" size="sm" onClick={clearChat}>
                 {CLEAR_CHAT_TEXT}
@@ -317,13 +344,18 @@ export default function Chat() {
           </div>
         </div>
 
-        {/* ==== FIXED SUGGESTIONS ROW (moved up to avoid overlap) ==== */}
-        <div className="fixed bottom-[124px] left-0 right-0 z-50 pointer-events-auto">
-          <SuggestionsBar />
+        {/* PERSONALIZED SUGGESTIONS */}
+        <div
+          className="fixed left-0 right-0 pointer-events-none"
+          style={{ bottom: "124px", zIndex: 60 }}
+        >
+          <div style={{ pointerEvents: "auto" }}>
+            <SuggestionsBar />
+          </div>
         </div>
 
         {/* INPUT BAR */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-linear-to-t from-background pt-13 pb-3 dark:bg-black">
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-linear-to-t from-background pb-3 pt-13 dark:bg-black">
           <div className="w-full px-5 flex justify-center">
             <div className="max-w-3xl w-full">
               <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -331,36 +363,39 @@ export default function Chat() {
                   <Controller
                     name="message"
                     control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel className="sr-only">
-                          Message
-                        </FieldLabel>
+                    render={({ field }) => (
+                      <Field>
+                        <FieldLabel className="sr-only">Message</FieldLabel>
 
                         <div className="relative h-13">
                           <Input
                             {...field}
-                            id="chat-form-message"
                             ref={inputRef}
-                            className="h-15 pr-20 pl-5 bg-card rounded-[20px]"
-                            placeholder="Type your message here..."
+                            className="h-15 pl-5 pr-24 rounded-[20px] bg-card"
+                            placeholder="Type your message..."
                             disabled={status === "streaming"}
                           />
 
-                          {(status === "ready" || status === "error") && (
+                          {(status === "ready" ||
+                            status === "error") && (
                             <Button
                               type="submit"
-                              className="absolute right-3 top-3 rounded-full"
-                              disabled={!field.value.trim()}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full"
                               size="icon"
+                              disabled={!field.value.trim()}
+                              style={{
+                                width: 44,
+                                height: 44,
+                              }}
                             >
                               <ArrowUp className="size-4" />
                             </Button>
                           )}
 
-                          {(status === "streaming" || status === "submitted") && (
+                          {(status === "streaming" ||
+                            status === "submitted") && (
                             <Button
-                              className="absolute right-2 top-2 rounded-full"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full"
                               size="icon"
                               onClick={() => stop()}
                             >
@@ -376,9 +411,8 @@ export default function Chat() {
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="w-full px-5 mt-1 flex justify-center text-xs text-muted-foreground">
-            © {new Date().getFullYear()} {OWNER_NAME} —{" "}
+          <div className="text-xs text-center text-muted-foreground">
+            © {new Date().getFullYear()} {OWNER_NAME} ·{" "}
             <Link href="/terms" className="underline">
               Terms of Use
             </Link>
@@ -386,14 +420,14 @@ export default function Chat() {
         </div>
       </main>
 
-      {/* Global CSS */}
+      {/* GLOBAL CSS */}
       <style jsx global>{`
         .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
         .scrollbar-hide {
-          -ms-overflow-style: none;
           scrollbar-width: none;
+          -ms-overflow-style: none;
         }
         .suggestion-chip {
           display: inline-flex;
