@@ -148,8 +148,8 @@ export default function Chat() {
   src="/logo.png"
   alt="Logo"
   style={{
-    width: "36px",
-    height: "36px",
+    width: "56px",
+    height: "56px",
     objectFit: "contain",
   }}
 />
