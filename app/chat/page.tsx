@@ -64,10 +64,86 @@ const saveMessagesToStorage = (
   );
 };
 
+type BusinessProfile = {
+  industry?: string;
+  materials?: string;
+  location?: string;
+  goal?: string;
+};
+
+function extractProfileFromMessages(messages: UIMessage[]): BusinessProfile | null {
+  const userMessages = messages.filter((m) => m.role === "user");
+  if (userMessages.length === 0) return null;
+  for (let i = userMessages.length - 1; i >= 0; i--) {
+    const parts = userMessages[i].parts || [];
+    const text = parts
+      .filter((p: any) => p && p.type === "text" && typeof p.text === "string")
+      .map((p: any) => p.text)
+      .join("\n")
+      .trim();
+    if (!text) continue;
+
+    const industryMatch = text.match(/Industry\s*:\s*(.+)/i);
+    const materialsMatch = text.match(/Materials?\s*:\s*(.+)/i);
+    const locationMatch = text.match(/Location\s*:\s*(.+)/i);
+    const goalMatch = text.match(/Goal\s*:\s*(.+)/i);
+
+    if (industryMatch || materialsMatch || locationMatch || goalMatch) {
+      return {
+        industry: industryMatch ? industryMatch[1].trim() : undefined,
+        materials: materialsMatch ? materialsMatch[1].trim() : undefined,
+        location: locationMatch ? locationMatch[1].trim() : undefined,
+        goal: goalMatch ? goalMatch[1].trim() : undefined,
+      };
+    }
+  }
+  return null;
+}
+
+function suggestionsForProfile(profile: BusinessProfile) {
+  const defaultSuggestions = [
+    "Tell me how to reduce waste",
+    "Help me source sustainable materials",
+    "Make my packaging greener",
+  ];
+
+  if (!profile || !profile.industry) return defaultSuggestions;
+
+  const industry = profile.industry.toLowerCase();
+  if (industry.includes("printing")) {
+    return [
+      "Green Practices in printing",
+      "Sustainable sourcing options",
+      "Green Manufacturing steps",
+    ];
+  }
+
+  if (industry.includes("apparel")) {
+    return [
+      "Sustainable fabric options",
+      "Reduce water in dyeing",
+      "Circularity strategies for apparel",
+    ];
+  }
+
+  if (industry.includes("food") || industry.includes("restaurant")) {
+    return [
+      "Reduce food waste steps",
+      "Local sourcing options",
+      "Composting and waste segregation",
+    ];
+  }
+
+  return defaultSuggestions;
+}
+
 export default function Chat() {
   const [isClient, setIsClient] = useState(false);
   const [durations, setDurations] = useState<Record<string, number>>({});
   const welcomeMessageShownRef = useRef(false);
+  const [profile, setProfile] = useState<BusinessProfile | null>(null);
+  const suggestionListRef = useRef<string[]>([]);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const stored = typeof window !== "undefined" ? loadMessagesFromStorage() : { messages: [], durations: {} };
   const [initialMessages] = useState<UIMessage[]>(stored.messages);
@@ -87,6 +163,14 @@ export default function Chat() {
       saveMessagesToStorage(messages, durations);
     }
   }, [messages, durations, isClient]);
+
+  // update profile + suggestions when messages change
+  useEffect(() => {
+    const p = extractProfileFromMessages(messages);
+    setProfile(p);
+    const suggs = suggestionsForProfile(p || {});
+    suggestionListRef.current = suggs;
+  }, [messages]);
 
   const handleDurationChange = (key: string, duration: number) => {
     setDurations((prev) => ({ ...prev, [key]: duration }));
@@ -128,6 +212,42 @@ export default function Chat() {
     saveMessagesToStorage(newMessages, newDurations);
     toast.success("Chat cleared");
   }
+
+  // clicking a suggestion fills the input (user requested fill-input behaviour)
+  function handleSuggestionClick(s: string) {
+    form.setValue("message", s);
+    // focus the input if possible
+    const el = document.getElementById("chat-form-message") as HTMLInputElement | null;
+    if (el) {
+      el.focus();
+      const len = s.length;
+      try {
+        el.setSelectionRange(len, len);
+      } catch {
+        // ignore if not supported
+      }
+    }
+  }
+
+  const SuggestionsBar = () => {
+    const suggs = suggestionListRef.current;
+    if (!suggs || suggs.length === 0) return null;
+    return (
+      <div className="max-w-3xl w-full mx-auto mb-3 px-3">
+        <div className="flex flex-wrap gap-3">
+          {suggs.map((s, i) => (
+            <button
+              key={i}
+              onClick={() => handleSuggestionClick(s)}
+              className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-sm text-gray-800 shadow-sm"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="flex h-screen items-center justify-center font-sans dark:bg-black">
@@ -174,22 +294,31 @@ export default function Chat() {
                   onDurationChange={handleDurationChange}
                 />
                 {status === "submitted" && (
-                  <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                  <div className="flex justify-start max-w-3xl w-full">
+                    <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                  </div>
                 )}
               </>
             ) : (
-              <Loader2 className="size-4 animate-spin text-muted-foreground" />
+              <div className="flex justify-center max-w-2xl w-full">
+                <Loader2 className="size-4 animate-spin text-muted-foreground" />
+              </div>
             )}
           </div>
         </div>
 
+        {/* Suggestions bar (above input) */}
+        <div className="fixed bottom-[92px] left-0 right-0 z-50 pointer-events-auto">
+          <SuggestionsBar />
+        </div>
+
         {/* INPUT BAR */}
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-linear-to-t from-background via-background/50 to-transparent dark:bg-black pt-13">
-          <div className="w-full px-5 pt-5 pb-1 flex justify-center relative">
+          <div className="w-full px-5 pt-5 pb-1 items-center flex justify-center relative overflow-visible">
+            <div className="message-fade-overlay" />
             <div className="max-w-3xl w-full">
               <form id="chat-form" onSubmit={form.handleSubmit(onSubmit)}>
                 <FieldGroup>
-
                   <Controller
                     name="message"
                     control={form.control}
@@ -203,8 +332,11 @@ export default function Chat() {
                           <Input
                             {...field}
                             id="chat-form-message"
+                            ref={(el: HTMLInputElement) => {
+                              if (el) inputRef.current = el;
+                            }}
                             className="h-15 pr-15 pl-5 bg-card rounded-[20px]"
-                            placeholder="Type your message…"
+                            placeholder="Type your message here..."
                             disabled={status === "streaming"}
                             aria-invalid={fieldState.invalid}
                             autoComplete="off"
@@ -218,10 +350,10 @@ export default function Chat() {
 
                           {(status === "ready" || status === "error") && (
                             <Button
-                              type="submit"
                               className="absolute right-3 top-3 rounded-full"
-                              size="icon"
+                              type="submit"
                               disabled={!field.value.trim()}
+                              size="icon"
                             >
                               <ArrowUp className="size-4" />
                             </Button>
@@ -240,7 +372,6 @@ export default function Chat() {
                       </Field>
                     )}
                   />
-
                 </FieldGroup>
               </form>
             </div>
