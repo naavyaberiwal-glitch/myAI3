@@ -8,7 +8,7 @@ export default function WelcomePage() {
   const router = useRouter();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeIntervalRef = useRef<number | null>(null);
-  const [muted, setMuted] = useState(true); // start muted so browsers allow autoplay
+  const [muted, setMuted] = useState(true); // start muted so autoplay is allowed in many browsers
   const [unmuteNeeded, setUnmuteNeeded] = useState(false);
 
   const TARGET_VOLUME = 0.36;
@@ -30,9 +30,7 @@ export default function WelcomePage() {
     const stepAmount = TARGET_VOLUME / steps;
     fadeIntervalRef.current = window.setInterval(() => {
       try {
-        // Use numeric comparisons; audio.volume may be 0..1
-        const current = typeof audio.volume === "number" ? audio.volume : 0;
-        audio.volume = Math.min(TARGET_VOLUME, current + stepAmount);
+        audio.volume = Math.min(TARGET_VOLUME, (audio.volume || 0) + stepAmount);
         if (audio.volume >= TARGET_VOLUME - 0.001) {
           clearFade();
           audio.volume = TARGET_VOLUME;
@@ -43,93 +41,86 @@ export default function WelcomePage() {
     }, FADE_STEP_MS);
   };
 
-  // attempt autoplay muted then try to unmute after fade; also listen for user gesture fallback
+  // Robust autoplay logic: try muted autoplay, fade in, then attempt to unmute.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // mobile safe inline playback — use setAttribute to avoid TS mismatch
     audio.loop = true;
+    // setAttribute avoids TypeScript DOM typings issue for playsinline
     audio.setAttribute("playsinline", "");
 
-    let didAttemptAuto = false;
-
-    const tryUnmutePlay = async (): Promise<boolean> => {
+    const attemptPlay = async (unmute = false) => {
       try {
-        // try to play (user gesture may be required)
+        audio.muted = !unmute;
+        audio.volume = unmute ? TARGET_VOLUME : 0;
         await audio.play();
-        audio.muted = false;
-        audio.volume = TARGET_VOLUME;
-        return !audio.muted;
-      } catch {
+        console.log("[audio] play() succeeded, muted=", audio.muted, "volume=", audio.volume);
+        return true;
+      } catch (err) {
+        console.warn("[audio] play() failed:", err);
         return false;
       }
     };
 
-    const start = async () => {
-      try {
-        // start muted autoplay (browsers allow muted autoplay)
-        audio.muted = true;
-        audio.volume = 0;
-        await audio.play(); // may succeed muted
+    (async () => {
+      const ok = await attemptPlay(false); // try muted autoplay
+      if (ok) {
         fadeIn();
-        didAttemptAuto = true;
-
-        // after fade, attempt to unmute programmatically (may still be blocked)
+        // try to unmute after fade — may still be blocked, so handle gracefully
         setTimeout(async () => {
-          const ok = await tryUnmutePlay();
-          if (ok) {
+          const unmutedOk = await attemptPlay(true);
+          if (unmutedOk) {
             setMuted(false);
             setUnmuteNeeded(false);
           } else {
-            // still blocked — show control to user
             setMuted(true);
             setUnmuteNeeded(true);
           }
         }, FADE_DURATION_MS + 200);
-      } catch {
+      } else {
         // autoplay failed entirely — show unmute control
-        setUnmuteNeeded(true);
         setMuted(true);
+        setUnmuteNeeded(true);
       }
-    };
+    })();
 
-    // call start
-    start();
-
-    // fallback: if autoplay was blocked, a single user gesture should start audio
+    // one-time gesture fallback: a user pointerdown anywhere will attempt to start & unmute audio
     const onFirstGesture = async () => {
-      if (!audio) return;
-      // If autoplay already succeeded and unmuted, we can remove the handler
-      if (!unmuteNeeded && !muted) {
-        window.removeEventListener("pointerdown", onFirstGesture, { capture: true });
-        return;
-      }
-      const ok = await tryUnmutePlay();
-      if (ok) {
+      const success = await attemptPlay(true);
+      if (success) {
         setMuted(false);
         setUnmuteNeeded(false);
         window.removeEventListener("pointerdown", onFirstGesture, { capture: true });
       } else {
-        setUnmuteNeeded(true);
         setMuted(true);
+        setUnmuteNeeded(true);
       }
     };
-
     window.addEventListener("pointerdown", onFirstGesture, { capture: true });
+
+    // helpful debug listeners (optional)
+    const onCanPlay = () => console.log("[audio] canplay");
+    const onPlay = () => console.log("[audio] play event");
+    const onError = (e: any) => console.error("[audio] error event", e);
+
+    audio.addEventListener("canplay", onCanPlay);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("error", onError);
 
     return () => {
       clearFade();
       window.removeEventListener("pointerdown", onFirstGesture, { capture: true });
+      audio.removeEventListener("canplay", onCanPlay);
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("error", onError);
       try {
         audio.pause();
       } catch {}
     };
-    // intentionally empty deps — run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // toggle handler for mute/unmute
   const handleToggle = async () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -141,6 +132,7 @@ export default function WelcomePage() {
         setMuted(false);
         setUnmuteNeeded(false);
       } catch {
+        // still blocked — show unmute needed
         setUnmuteNeeded(true);
         setMuted(true);
       }
@@ -152,7 +144,7 @@ export default function WelcomePage() {
 
   return (
     <main className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden bg-gradient-to-b from-emerald-50 to-white">
-      {/* soft decorative circles */}
+      {/* decorative blurred circles */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-20">
         <div className="absolute -left-40 -top-40 w-[520px] h-[520px] rounded-full bg-gradient-to-tr from-[#DFF6E6] to-[#C9F0D1] opacity-60 blur-3xl" />
         <div className="absolute -right-32 -bottom-44 w-[420px] h-[420px] rounded-full bg-gradient-to-br from-[#F0FFF6] to-[#D9F7E4] opacity-55 blur-2xl" />
@@ -161,21 +153,14 @@ export default function WelcomePage() {
       <div
         className="relative z-10 w-full max-w-3xl mx-auto rounded-2xl py-10 px-8 md:px-16 shadow-xl"
         style={{
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.85), rgba(245,255,245,0.70))",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,255,245,0.75))",
           backdropFilter: "saturate(140%) blur(8px)",
           border: "1px solid rgba(24,32,20,0.06)",
         }}
       >
         <div className="flex flex-col items-center text-center gap-6">
           <div className="relative animate-logo-lift">
-            <div
-              aria-hidden
-              className="absolute -inset-6 rounded-full -z-10 shimmer-ring"
-              style={{ width: 168, height: 168 }}
-            />
             <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-white/90 shadow-md">
-              {/* plain img (safer for SSR/build while debugging) */}
               <img src="/logo.png" alt="Greanly logo" width={92} height={92} />
             </div>
           </div>
@@ -196,7 +181,7 @@ export default function WelcomePage() {
             </li>
             <li className="text-sm text-slate-700/90 flex items-start gap-3">
               <span className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-semibold">•</span>
-              <span>Improve materials, packaging & sourcing</span>
+              <span>Improve materials, packaging &amp; sourcing</span>
             </li>
           </ul>
 
@@ -223,8 +208,7 @@ export default function WelcomePage() {
 
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-sm text-slate-600/80 z-10">Built with care • AI + practical sustainability tips</div>
 
-      {/* Ambient audio file — ensure /public/ambient-forest.mp3 exists */}
-      {/* Muted prop reflects local state so UI and audio attribute remain consistent */}
+      {/* Ambient audio element — ensure /public/ambient-forest.mp3 exists */}
       <audio
         ref={audioRef}
         src="/ambient-forest.mp3"
@@ -232,9 +216,12 @@ export default function WelcomePage() {
         autoPlay
         loop
         muted={muted}
+        onCanPlay={() => console.log("[audio element] canplay")}
+        onPlay={() => console.log("[audio element] play")}
+        onError={(e) => console.error("[audio element] error", e)}
       />
 
-      {/* compact unmute toggle */}
+      {/* compact unmute/mute toggle */}
       <button
         onClick={handleToggle}
         aria-pressed={!muted}
@@ -262,20 +249,6 @@ export default function WelcomePage() {
         .animate-fade-up.delay-100 { animation-delay: 120ms; }
         .animate-fade-up.delay-200 { animation-delay: 240ms; }
         .animate-fade-up.delay-300 { animation-delay: 360ms; }
-
-        .shimmer-ring {
-          background: radial-gradient(circle at 30% 30%, rgba(165,255,205,0.95) 0%, rgba(165,255,205,0.6) 18%, rgba(255,255,255,0.02) 60%);
-          filter: blur(28px);
-          opacity: 0.95;
-          animation: shimmerScale 3200ms ease-in-out infinite;
-        }
-
-        @keyframes shimmerScale {
-          0% { transform: scale(0.96) rotate(0deg); opacity: 0.75; }
-          50% { transform: scale(1.03) rotate(7deg); opacity: 1; }
-          100% { transform: scale(0.96) rotate(0deg); opacity: 0.75; }
-        }
-
         @keyframes lift { from { transform: translateY(14px) scale(0.98); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
         @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
       `}</style>
