@@ -175,18 +175,19 @@ export default function Chat() {
 
                 <p className="tracking-tight">Chat with {AI_NAME}</p>
               </ChatHeaderBlock>
-              <ChatHeaderBlock className="justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="cursor-pointer"
-                  onClick={clearChat}
-                >
-                  <Plus className="size-4" />
-                  {CLEAR_CHAT_TEXT}
-                </Button>
-              </ChatHeaderBlock>
-            </ChatHeader>
+              <ChatHeaderBlock className="justify-center items-center">
+  <div className="relative inline-block mr-4 align-middle">
+    <img
+      src="/logo.png"
+      alt="Logo"
+      className="w-20 h-20 object-contain block"
+    />
+    <span className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+  </div>
+
+  <p className="tracking-tight">Chat with {AI_NAME}</p>
+</ChatHeaderBlock>
+
           </div>
         </div>
         <div className="h-screen overflow-y-auto px-5 py-4 w-full pt-[88px] pb-[150px]">
