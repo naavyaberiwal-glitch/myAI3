@@ -35,7 +35,7 @@ export default function WelcomePage() {
         <p>• Improve materials, packaging, and sourcing</p>
       </div>
 
-      {/* Button: go to /chat (NOT /) */}
+      {/* Button — go to /chat */}
       <button
         onClick={() => router.push("/chat")}
         className="bg-green-600 text-white px-8 py-3 text-lg rounded-full shadow-lg hover:bg-green-700 transition-transform hover:scale-[1.02]"
