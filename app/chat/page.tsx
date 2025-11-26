@@ -7,7 +7,6 @@ import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { useChat } from "@ai-sdk/react";
 import { ArrowUp, Loader2, Square } from "lucide-react";
 import { MessageWall } from "@/components/messages/message-wall";
@@ -156,7 +155,7 @@ export default function Chat() {
   const [durations, setDurations] = useState<Record<string, number>>({});
   const welcomeSeen = useRef(false);
   const suggestionsRef = useRef<string[]>([]);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const stored = typeof window !== "undefined" ? loadStorage() : { messages: [], durations: {} };
   const [initialMessages] = useState<UIMessage[]>(stored.messages);
@@ -226,6 +225,9 @@ export default function Chat() {
   const onSubmit = (vals: any) => {
     sendMessage({ text: vals.message });
     form.reset();
+    if (inputRef.current) {
+      inputRef.current.style.height = "44px";
+    }
   };
 
   function clearChat() {
@@ -351,28 +353,34 @@ export default function Chat() {
                       <Field>
                         <FieldLabel className="sr-only">Message</FieldLabel>
 
-                        <div className="relative h-13">
+                        <div className="relative">
 
-                          {/* ✅ SHIFT + ENTER = Newline  /  ENTER = Send */}
-                          <Input
+                          {/* TEXTAREA (Supports newlines + auto-resize) */}
+                          <textarea
                             {...field}
-                            ref={inputRef}
+                            ref={(el) => {
+                              field.ref(el);
+                              inputRef.current = el;
+                            }}
                             id="chat-form-message"
-                            className="h-15 pl-5 pr-24 rounded-[20px] bg-card"
-                            placeholder="Type your message..."
+                            className="w-full min-h-[44px] max-h-[200px] resize-none overflow-y-auto pl-5 pr-20 py-3 rounded-[20px] bg-card text-sm"
+                            placeholder="Type your message…"
                             disabled={status === "streaming"}
+                            onInput={(e) => {
+                              const ta = e.currentTarget;
+                              ta.style.height = "auto";
+                              ta.style.height = ta.scrollHeight + "px";
+                            }}
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
-                                if (e.shiftKey) {
-                                  // Let newline occur
-                                  return;
-                                }
+                                if (e.shiftKey) return; // newline
                                 e.preventDefault();
                                 form.handleSubmit(onSubmit)();
                               }
                             }}
                           />
 
+                          {/* SEND BUTTON */}
                           {(status === "ready" || status === "error") && (
                             <Button
                               type="submit"
@@ -384,6 +392,7 @@ export default function Chat() {
                             </Button>
                           )}
 
+                          {/* STOP BUTTON */}
                           {(status === "streaming" || status === "submitted") && (
                             <Button
                               className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full"
@@ -393,6 +402,7 @@ export default function Chat() {
                               <Square className="size-4" />
                             </Button>
                           )}
+
                         </div>
                       </Field>
                     )}
