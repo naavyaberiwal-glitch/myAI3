@@ -176,9 +176,7 @@ export default function Chat() {
     if (isClient) saveStorage(messages, durations);
   }, [messages, durations, isClient]);
 
-  /* ------------------------------------------------------------
-     PROFILE + SMART SUGGESTION LOGIC
-     ------------------------------------------------------------ */
+  /* PROFILE + SUGGESTIONS */
   useEffect(() => {
     const userMsgs = messages.filter((m) => m.role === "user");
     const lastText =
@@ -204,9 +202,7 @@ export default function Chat() {
     }
   }, [messages]);
 
-  /* ------------------------------------------------------------
-     WELCOME MESSAGE
-     ------------------------------------------------------------ */
+  /* WELCOME MESSAGE */
   useEffect(() => {
     if (!isClient || welcomeSeen.current || initialMessages.length > 0) return;
 
@@ -221,9 +217,7 @@ export default function Chat() {
     welcomeSeen.current = true;
   }, [isClient]);
 
-  /* ------------------------------------------------------------
-     FORM SUBMIT
-     ------------------------------------------------------------ */
+  /* FORM */
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: { message: "" },
@@ -234,9 +228,6 @@ export default function Chat() {
     form.reset();
   };
 
-  /* ------------------------------------------------------------
-     CLEAR CHAT
-     ------------------------------------------------------------ */
   function clearChat() {
     setMessages([]);
     setDurations({});
@@ -244,9 +235,6 @@ export default function Chat() {
     toast.success("Chat cleared");
   }
 
-  /* ------------------------------------------------------------
-     CLICKING A SUGGESTION
-     ------------------------------------------------------------ */
   function clickSuggestion(text: string) {
     form.setValue("message", text);
     setTimeout(() => {
@@ -255,9 +243,7 @@ export default function Chat() {
     }, 20);
   }
 
-  /* ------------------------------------------------------------
-     SUGGESTION BAR (ONLY WHEN NEEDED)
-     ------------------------------------------------------------ */
+  /* SUGGESTION BAR */
   const SuggestionsBar = () => {
     const list = suggestionsRef.current;
     if (!list.length) return null;
@@ -289,9 +275,7 @@ export default function Chat() {
     );
   };
 
-  /* ------------------------------------------------------------
-     RENDER
-     ------------------------------------------------------------ */
+  /* ---------------------- RENDER ---------------------- */
   return (
     <div className="flex h-screen justify-center dark:bg-black">
       <main className="w-full h-screen relative">
@@ -344,7 +328,7 @@ export default function Chat() {
           </div>
         </div>
 
-        {/* PERSONALIZED SUGGESTIONS */}
+        {/* SUGGESTIONS */}
         <div
           className="fixed left-0 right-0 pointer-events-none"
           style={{ bottom: "124px", zIndex: 60 }}
@@ -368,32 +352,39 @@ export default function Chat() {
                         <FieldLabel className="sr-only">Message</FieldLabel>
 
                         <div className="relative h-13">
+
+                          {/* ✅ SHIFT + ENTER = Newline  /  ENTER = Send */}
                           <Input
                             {...field}
                             ref={inputRef}
+                            id="chat-form-message"
                             className="h-15 pl-5 pr-24 rounded-[20px] bg-card"
                             placeholder="Type your message..."
                             disabled={status === "streaming"}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                if (e.shiftKey) {
+                                  // Let newline occur
+                                  return;
+                                }
+                                e.preventDefault();
+                                form.handleSubmit(onSubmit)();
+                              }
+                            }}
                           />
 
-                          {(status === "ready" ||
-                            status === "error") && (
+                          {(status === "ready" || status === "error") && (
                             <Button
                               type="submit"
                               className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full"
                               size="icon"
                               disabled={!field.value.trim()}
-                              style={{
-                                width: 44,
-                                height: 44,
-                              }}
                             >
                               <ArrowUp className="size-4" />
                             </Button>
                           )}
 
-                          {(status === "streaming" ||
-                            status === "submitted") && (
+                          {(status === "streaming" || status === "submitted") && (
                             <Button
                               className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full"
                               size="icon"
