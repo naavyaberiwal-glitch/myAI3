@@ -229,21 +229,30 @@ export default function Chat() {
     }
   }
 
+  // New SuggestionsBar: single-line, horizontally scrollable, no wrapping
   const SuggestionsBar = () => {
     const suggs = suggestionListRef.current;
     if (!suggs || suggs.length === 0) return null;
+
     return (
-      <div className="max-w-3xl w-full mx-auto mb-3 px-3">
-        <div className="flex flex-wrap gap-3">
-          {suggs.map((s, i) => (
-            <button
-              key={i}
-              onClick={() => handleSuggestionClick(s)}
-              className="px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-sm text-gray-800 shadow-sm"
-            >
-              {s}
-            </button>
-          ))}
+      <div className="w-full flex justify-center">
+        <div
+          className="max-w-3xl w-full px-4"
+          style={{ pointerEvents: "auto" }}
+        >
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex flex-nowrap items-center gap-3 py-2 min-w-full">
+              {suggs.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleSuggestionClick(s)}
+                  className="whitespace-nowrap px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 text-sm text-gray-800 shadow-sm"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -383,6 +392,17 @@ export default function Chat() {
         </div>
 
       </main>
+
+      {/* Local CSS for hiding scrollbar while keeping horizontal scroll */}
+      <style jsx global>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </div>
   );
 }
