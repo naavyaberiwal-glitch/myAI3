@@ -1,14 +1,15 @@
-// app/welcome/page.tsx
+// app/page.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-export default function WelcomePage(): JSX.Element {
+export default function WelcomePage() {
   const router = useRouter();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeIntervalRef = useRef<number | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false); // true when audio is playing
+  const [muted, setMuted] = useState(true); // start muted so autoplay is allowed in many browsers
+  const [unmuteNeeded, setUnmuteNeeded] = useState(false);
 
   const TARGET_VOLUME = 0.36;
   const FADE_DURATION_MS = 1400;
@@ -29,8 +30,8 @@ export default function WelcomePage(): JSX.Element {
     const stepAmount = TARGET_VOLUME / steps;
     fadeIntervalRef.current = window.setInterval(() => {
       try {
-        audio.volume = Math.min(TARGET_VOLUME, (audio.volume ?? 0) + stepAmount);
-        if ((audio.volume ?? 0) >= TARGET_VOLUME - 0.001) {
+        audio.volume = Math.min(TARGET_VOLUME, (audio.volume || 0) + stepAmount);
+        if (audio.volume >= TARGET_VOLUME - 0.001) {
           clearFade();
           audio.volume = TARGET_VOLUME;
         }
@@ -40,94 +41,110 @@ export default function WelcomePage(): JSX.Element {
     }, FADE_STEP_MS);
   };
 
-  // Attempt immediate play; if blocked, start on first user gesture.
+  // Robust autoplay logic: try muted autoplay, fade in, then attempt to unmute.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // required attributes (use setAttribute for compatibility with TS DOM types)
     audio.loop = true;
+    // setAttribute avoids TypeScript DOM typings issue for playsinline
     audio.setAttribute("playsinline", "");
 
-    // start with very low volume (makes some autoplay succeed)
-    audio.volume = 0;
-
-    const startFadeAndMark = () => {
-      fadeIn();
-      setIsPlaying(true);
-    };
-
-    const tryPlayNow = async (): Promise<boolean> => {
+    const attemptPlay = async (unmute = false) => {
       try {
-        // try to play unmuted (modern browsers often block audible autoplay, but this is the attempt)
+        audio.muted = !unmute;
+        audio.volume = unmute ? TARGET_VOLUME : 0;
         await audio.play();
-        startFadeAndMark();
+        console.log("[audio] play() succeeded, muted=", audio.muted, "volume=", audio.volume);
         return true;
-      } catch {
+      } catch (err) {
+        console.warn("[audio] play() failed:", err);
         return false;
       }
     };
 
-    let installedHandler = false;
-    const onFirstGesture = async () => {
-      try {
-        await audio.play();
-        startFadeAndMark();
-      } catch {
-        // if still fails, do nothing — user can press play on UI (we don't provide explicit play UI here)
-      } finally {
-        if (installedHandler) {
-          document.removeEventListener("pointerdown", onFirstGesture);
-          installedHandler = false;
-        }
-      }
-    };
-
     (async () => {
-      const ok = await tryPlayNow();
-      if (!ok) {
-        // If autoplay blocked, wait for a single gesture (click/tap) to start audio.
-        document.addEventListener("pointerdown", onFirstGesture, { once: true, passive: true });
-        installedHandler = true;
+      const ok = await attemptPlay(false); // try muted autoplay
+      if (ok) {
+        fadeIn();
+        // try to unmute after fade — may still be blocked, so handle gracefully
+        setTimeout(async () => {
+          const unmutedOk = await attemptPlay(true);
+          if (unmutedOk) {
+            setMuted(false);
+            setUnmuteNeeded(false);
+          } else {
+            setMuted(true);
+            setUnmuteNeeded(true);
+          }
+        }, FADE_DURATION_MS + 200);
+      } else {
+        // autoplay failed entirely — show unmute control
+        setMuted(true);
+        setUnmuteNeeded(true);
       }
     })();
 
+    // one-time gesture fallback: a user pointerdown anywhere will attempt to start & unmute audio
+    const onFirstGesture = async () => {
+      const success = await attemptPlay(true);
+      if (success) {
+        setMuted(false);
+        setUnmuteNeeded(false);
+        window.removeEventListener("pointerdown", onFirstGesture, { capture: true });
+      } else {
+        setMuted(true);
+        setUnmuteNeeded(true);
+      }
+    };
+    window.addEventListener("pointerdown", onFirstGesture, { capture: true });
+
+    // helpful debug listeners (optional)
+    const onCanPlay = () => console.log("[audio] canplay");
+    const onPlay = () => console.log("[audio] play event");
+    const onError = (e: any) => console.error("[audio] error event", e);
+
+    audio.addEventListener("canplay", onCanPlay);
+    audio.addEventListener("play", onPlay);
+    audio.addEventListener("error", onError);
+
     return () => {
       clearFade();
+      window.removeEventListener("pointerdown", onFirstGesture, { capture: true });
+      audio.removeEventListener("canplay", onCanPlay);
+      audio.removeEventListener("play", onPlay);
+      audio.removeEventListener("error", onError);
       try {
         audio.pause();
       } catch {}
-      if (installedHandler) {
-        document.removeEventListener("pointerdown", onFirstGesture);
-        installedHandler = false;
-      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // small toggle if you want to let user stop the ambience (keeps UI minimal)
-  const togglePlayback = async () => {
+  const handleToggle = async () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (audio.paused) {
+    if (muted) {
       try {
         await audio.play();
-        fadeIn();
-        setIsPlaying(true);
+        audio.muted = false;
+        audio.volume = TARGET_VOLUME;
+        setMuted(false);
+        setUnmuteNeeded(false);
       } catch {
-        // ignore
+        // still blocked — show unmute needed
+        setUnmuteNeeded(true);
+        setMuted(true);
       }
     } else {
-      try {
-        audio.pause();
-      } catch {}
-      setIsPlaying(false);
+      audio.muted = true;
+      setMuted(true);
     }
   };
 
   return (
     <main className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden bg-gradient-to-b from-emerald-50 to-white">
-      {/* decorative soft circles */}
+      {/* decorative blurred circles */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-20">
         <div className="absolute -left-40 -top-40 w-[520px] h-[520px] rounded-full bg-gradient-to-tr from-[#DFF6E6] to-[#C9F0D1] opacity-60 blur-3xl" />
         <div className="absolute -right-32 -bottom-44 w-[420px] h-[420px] rounded-full bg-gradient-to-br from-[#F0FFF6] to-[#D9F7E4] opacity-55 blur-2xl" />
@@ -136,7 +153,7 @@ export default function WelcomePage(): JSX.Element {
       <div
         className="relative z-10 w-full max-w-3xl mx-auto rounded-2xl py-10 px-8 md:px-16 shadow-xl"
         style={{
-          background: "linear-gradient(180deg, rgba(255,255,255,0.85), rgba(245,255,245,0.70))",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,255,245,0.75))",
           backdropFilter: "saturate(140%) blur(8px)",
           border: "1px solid rgba(24,32,20,0.06)",
         }}
@@ -164,14 +181,13 @@ export default function WelcomePage(): JSX.Element {
             </li>
             <li className="text-sm text-slate-700/90 flex items-start gap-3">
               <span className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-semibold">•</span>
-              <span>Improve materials, packaging & sourcing</span>
+              <span>Improve materials, packaging &amp; sourcing</span>
             </li>
           </ul>
 
           <div className="mt-6 animate-fade-up delay-300">
             <button
               onClick={() => {
-                // ensure audio is playing before navigation where possible
                 const audio = audioRef.current;
                 if (audio && audio.paused) {
                   void audio.play().catch(() => {});
@@ -180,7 +196,7 @@ export default function WelcomePage(): JSX.Element {
               }}
               className="inline-flex items-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-7 py-3 rounded-full shadow-lg transform transition active:scale-95"
             >
-              <svg className="w-5 h-5 -ml-1" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" aria-hidden>
+              <svg className="w-5 h-5 -ml-1" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none">
                 <path d="M5 12h14" strokeLinecap="round" />
                 <path d="M12 5l7 7-7 7" strokeLinecap="round" />
               </svg>
@@ -192,26 +208,37 @@ export default function WelcomePage(): JSX.Element {
 
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-sm text-slate-600/80 z-10">Built with care • AI + practical sustainability tips</div>
 
-      {/* Ambient audio file — ensure /public/ambient-forest.mp3 exists */}
-      <audio ref={audioRef} src="/ambient-forest.mp3" preload="auto" />
+      {/* Ambient audio element — ensure /public/ambient-forest.mp3 exists */}
+      <audio
+        ref={audioRef}
+        src="/ambient-forest.mp3"
+        preload="auto"
+        autoPlay
+        loop
+        muted={muted}
+        onCanPlay={() => console.log("[audio element] canplay")}
+        onPlay={() => console.log("[audio element] play")}
+        onError={(e) => console.error("[audio element] error", e)}
+      />
 
-      {/* optional minimal playback toggle (small and not required) */}
+      {/* compact unmute/mute toggle */}
       <button
-        onClick={togglePlayback}
-        aria-pressed={isPlaying}
-        aria-label={isPlaying ? "Pause ambience" : "Play ambience"}
+        onClick={handleToggle}
+        aria-pressed={!muted}
+        aria-label={muted ? "Unmute ambient" : "Mute ambient"}
         className="fixed bottom-6 right-6 z-50 inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/90 shadow-lg hover:scale-105 transition"
         style={{ backdropFilter: "blur(6px)" }}
       >
-        {isPlaying ? (
+        {muted ? (
           <svg className="w-6 h-6 text-slate-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="6" y="5" width="4" height="14" rx="1" />
-            <rect x="14" y="5" width="4" height="14" rx="1" />
+            <path d="M11 5L6 9H3v6h3l5 4V5z" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 8c1.104 1.333 1.5 3.333 1.5 4s-.396 2.667-1.5 4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         ) : (
           <svg className="w-6 h-6 text-slate-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M11 5L6 9H3v6h3l5 4V5z" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M16 8a4 4 0 0 1 0 8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 5a8 8 0 0 1 0 14" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         )}
       </button>
@@ -222,7 +249,6 @@ export default function WelcomePage(): JSX.Element {
         .animate-fade-up.delay-100 { animation-delay: 120ms; }
         .animate-fade-up.delay-200 { animation-delay: 240ms; }
         .animate-fade-up.delay-300 { animation-delay: 360ms; }
-
         @keyframes lift { from { transform: translateY(14px) scale(0.98); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
         @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
       `}</style>
