@@ -1,10 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Custom dark variant */
+/* Custom dark variant (keeps compatibility with your setup) */
 @custom-variant dark (&:is(.dark *));
 
-/* Theme token mapping */
+/* Theme mapping (keeps tokens intact for Tailwind components) */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -19,18 +19,19 @@
 }
 
 /* ----------------------------------
-   BRAND VARIABLES (GREANLY)
+   BRAND / THEME VARIABLES
 ---------------------------------- */
 :root {
   --radius: 0.875rem;
 
-  /* Brand colors */
+  /* Brand palette */
   --green-forest: #0D3B2A;
   --green-leaf: #D9EDC5;
   --green-moss: #14503B;
   --green-mint: #ECF7E8;
   --cream: #F7F4E9;
 
+  /* Neutrals */
   --charcoal: #10201A;
   --stone-grey: #6A6A6A;
   --white: #FFFFFF;
@@ -42,6 +43,7 @@
   --background: var(--background-gradient-start);
   --foreground: var(--charcoal);
 
+  /* UI tokens */
   --border: rgba(13,59,42,0.07);
   --input: rgba(13,59,42,0.05);
   --ring: rgba(72,168,118,0.20);
@@ -49,14 +51,14 @@
   --primary: var(--green-forest);
   --primary-foreground: var(--white);
 
-  /* PAPER TEXTURE — KEEPING SAME FILE NAME */
-  --paper-url: "/recycled-paper.png"; /* <--- DO NOT CHANGE */
+  /* Paper texture (same filename as you requested) */
+  --paper-url: "/recycled-paper.png";
   --paper-opacity: 0.80;
   --paper-size: 2200px 2200px;
   --paper-blend: multiply;
 }
 
-/* Dark Mode */
+/* Dark mode overrides */
 .dark {
   --background-gradient-start: rgba(6,23,18,0.85);
   --background-gradient-end: rgba(10,28,23,0.95);
@@ -76,10 +78,10 @@
    BASE LAYER
 ---------------------------------- */
 @layer base {
-
   * {
     box-sizing: border-box;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   html, body, #__next {
@@ -88,39 +90,128 @@
     padding: 0;
   }
 
-  /* ------------------------------
-     FIXED: Clean background
-     ------------------------------ */
   body {
-    font-family: var(--font-sans, Inter), sans-serif;
+    font-family: var(--font-sans, Inter), system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     color: var(--foreground);
 
-    /* ONLY gradient + your recycled paper */
+    /* Gradient + recycled paper background (same filename) */
     background-image:
-      linear-gradient(
-        180deg,
-        var(--background-gradient-start),
-        var(--background-gradient-end)
-      ),
-      url("/recycled-paper.png"); /* <<< your real PNG */
+      linear-gradient(180deg, var(--background-gradient-start), var(--background-gradient-end)),
+      url("/recycled-paper.png");
     background-repeat: no-repeat;
     background-size: cover;
+    background-position: center center;
     background-attachment: fixed;
 
+    line-height: 1.55;
     position: relative;
     z-index: 0;
-    line-height: 1.55;
   }
+
+  /* Basic app container */
+  .app-container {
+    max-width: 1100px;
+    margin: 34px auto;
+    padding: 28px;
+    min-height: calc(100vh - 68px);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Cards */
+  .soft-card {
+    background: var(--white);
+    color: var(--charcoal);
+    border-radius: calc(var(--radius) + 4px);
+    box-shadow: 0 18px 40px rgba(13,59,42,0.06), 0 2px 6px rgba(13,59,42,0.03);
+    border: 1px solid var(--border);
+    padding: 18px;
+  }
+
+  /* Header / Brand */
+  .brand-row { display:flex; align-items:center; gap:14px; margin-bottom:6px; }
+  .chat-header {
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:18px; border-radius:calc(var(--radius)+4px);
+    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.35));
+    box-shadow: 0 10px 30px rgba(13,59,42,0.04);
+    border: 1px solid var(--border);
+  }
+
+  .chat-brand-badge {
+    width:54px; height:54px; min-width:54px; border-radius:12px;
+    background: linear-gradient(180deg, var(--primary), var(--green-moss));
+    color: var(--primary-foreground);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:18px; box-shadow: 0 12px 30px rgba(13,59,42,0.08);
+    border:1px solid rgba(255,255,255,0.02);
+  }
+
+  .brand-title { font-size:18px; font-weight:700; color:var(--foreground); letter-spacing:-0.01em; }
+  .brand-sub { font-size:13px; color:var(--stone-grey); }
+
+  h1,h2,h3,h4 { margin:0 0 8px 0; color:var(--foreground); font-weight:600; }
+  p { margin:0 0 14px 0; color:var(--foreground); font-size:15px; }
+
+  .messages {
+    display:flex; flex-direction:column; gap:18px; padding:18px;
+    border-radius:calc(var(--radius)+4px);
+    background: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0.28));
+    border: 1px solid rgba(13,59,42,0.03);
+  }
+
+  .message-row { display:flex; gap:14px; align-items:flex-start; }
+  .message-assistant {
+    max-width:78%; padding:18px; border-radius:18px;
+    background: linear-gradient(180deg, var(--green-leaf), rgba(217,237,197,0.9));
+    color: var(--green-forest); box-shadow:0 14px 36px rgba(13,59,42,0.05); border:1px solid rgba(13,59,42,0.06); font-size:15px;
+  }
+  .message-user {
+    max-width:78%; margin-left:auto; padding:16px; border-radius:18px; background:var(--white);
+    color:var(--charcoal); border:1px solid rgba(13,59,42,0.04); box-shadow:0 8px 18px rgba(13,59,42,0.03); font-size:15px;
+  }
+
+  .message-meta { font-size:12px; color:var(--stone-grey); margin-top:8px; }
+
+  .composer {
+    display:flex; align-items:center; gap:12px; padding:16px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.75));
+    border-radius: calc(var(--radius) + 6px); border:1px solid rgba(13,59,42,0.03);
+    box-shadow:0 8px 30px rgba(13,59,42,0.04);
+  }
+
+  .chat-textarea {
+    width:100%; min-height:48px; max-height:220px; padding:14px 16px; border-radius:12px; resize:none;
+    background: linear-gradient(180deg, var(--green-mint), rgba(236,247,232,0.92)); border:1px solid var(--input);
+    color:var(--foreground); font-size:15px; line-height:1.5; outline:none; transition: box-shadow 180ms ease, border-color 180ms ease, transform 120ms ease;
+  }
+  .chat-textarea:focus { box-shadow:0 8px 28px rgba(72,168,118,0.08); border-color:var(--green-moss); transform: translateY(-2px); }
+
+  .btn-send {
+    display:inline-flex; align-items:center; justify-content:center; min-width:46px; min-height:46px; padding:8px; border-radius:999px;
+    background: linear-gradient(180deg, var(--primary), var(--green-moss)); color:var(--primary-foreground); border:none;
+    box-shadow:0 12px 30px rgba(13,59,42,0.08); cursor:pointer; transition: transform 120ms ease, box-shadow 160ms ease;
+  }
+  .btn-send:hover { transform: translateY(-2px); box-shadow:0 18px 44px rgba(13,59,42,0.12); }
+
+  .sr-only { position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+  /* ensure fixed UI elements stay above content visually */
+  .fixed { position: fixed; }
 }
 
 /* ----------------------------------
-   GLOBAL PAPER OVERLAY (texture)
-   ---------------------------------- */
+   PAPER TEXTURE OVERLAY (on top of UI)
+   Allows subtle grain on all surfaces
+---------------------------------- */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 9999;           /* visible overlay */
   pointer-events: none;
 
   background-image: url(var(--paper-url));
@@ -131,20 +222,42 @@ body::after {
   mix-blend-mode: var(--paper-blend);
   opacity: var(--paper-opacity);
 
-  /* Polished organic look */
   filter: contrast(0.95) brightness(0.98) saturate(0.95);
 }
 
 /* Retina */
 @media only screen and (min-resolution: 2dppx) {
   body::after {
-    background-size: 1600px 1600px;
+    background-size: calc(var(--paper-size) / 2);
   }
 }
 
 /* ----------------------------------
-   UTILITIES
+   Utility layer
 ---------------------------------- */
 @layer utilities {
   .shadow-green-sm { box-shadow: 0 6px 14px rgba(13,59,42,0.06); }
+  .ring-ghost { box-shadow: 0 0 0 6px var(--ring); }
+  .border-subtle { border-color: var(--border); }
+  .bg-assistant { background: var(--green-leaf); }
+  .text-brand { color: var(--green-forest); }
+  .bg-brand { background: var(--primary); color: var(--primary-foreground); }
+}
+
+/* Responsive tweaks */
+@media (max-width: 1024px) {
+  .app-container { margin:20px; padding:18px; max-width:920px; }
+}
+@media (max-width: 640px) {
+  .app-container { margin:12px; padding:12px; }
+  .chat-header { padding:12px; }
+  .chat-textarea { min-height:42px; font-size:14px; }
+}
+
+/* Dark-mode adjustments for overlay */
+.dark body::after {
+  mix-blend-mode: normal;
+  background-color: rgba(3,10,8,0.06);
+  background-blend-mode: multiply;
+  opacity: calc(var(--paper-opacity) * 0.9);
 }
