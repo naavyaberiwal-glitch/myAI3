@@ -12,9 +12,9 @@ export default function WelcomePage() {
   const fadeIntervalRef = useRef<number | null>(null);
 
   // timings (ms)
-  const AUDIO_PLAY_MS = 3000; // play 3 seconds
-  const LEAVES_DURATION_MS = 1400; // how long leaf fall animation lasts
-  const LEAVES_SHOW_DELAY = 120; // slight delay before showing leaves after click
+  const AUDIO_PLAY_MS = 3000;
+  const LEAVES_DURATION_MS = 1400;
+  const LEAVES_SHOW_DELAY = 120;
 
   const [leavesActive, setLeavesActive] = useState(false);
   const [leavesMounted, setLeavesMounted] = useState(false);
@@ -46,7 +46,7 @@ export default function WelcomePage() {
           try {
             audio.pause();
             audio.currentTime = 0;
-            audio.volume = startVol; // restore nominal volume for next play
+            audio.volume = startVol;
             audio.loop = false;
           } catch {}
         }
@@ -61,7 +61,6 @@ export default function WelcomePage() {
   }, []);
 
   const handleGetStarted = async () => {
-    // play audio on gesture
     try {
       if (audioRef.current) {
         audioRef.current.volume = 0.36;
@@ -72,44 +71,38 @@ export default function WelcomePage() {
       // ignore autoplay errors
     }
 
-    // mount leaves container first (so CSS + DOM exist), then activate with small delay
     setLeavesMounted(true);
     window.setTimeout(() => setLeavesActive(true), LEAVES_SHOW_DELAY);
 
-    // hide leaves after their duration to keep UI clean
     window.setTimeout(() => {
       setLeavesActive(false);
-      // unmount after animation ends
       window.setTimeout(() => setLeavesMounted(false), 400);
     }, LEAVES_DURATION_MS + 300);
 
-    // wait for audio snippet, then fade out and navigate
     window.setTimeout(() => {
       try {
         if (audioRef.current) fadeOutAudio(600);
       } catch {}
-      // navigate shortly after fade-out begins (ensures fade plays)
       window.setTimeout(() => {
         router.push("/chat");
       }, 700);
     }, AUDIO_PLAY_MS);
   };
 
-  // render leaf spans (visual via pseudo elements)
   const leaves = Array.from({ length: 14 }).map((_, i) => (
     <span key={i} className="leaf" style={{ ['--i' as any]: i }} aria-hidden />
   ));
 
   return (
     <main className="welcome-hero min-h-screen w-full flex flex-col items-center justify-start p-4 relative overflow-hidden">
-      {/* Header: small top bar with theme toggle only */}
+      {/* Header: theme toggle only */}
       <header className="absolute top-4 left-0 right-0 z-50 flex items-center justify-end px-6">
         <div className="flex items-center gap-3">
           <ThemeToggle />
         </div>
       </header>
 
-      {/* Background blobs and subtle pattern */}
+      {/* Background layers */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-40">
         <div className="bg-circle left" />
         <div className="bg-circle right" />
@@ -117,7 +110,7 @@ export default function WelcomePage() {
         <div className="floating-orb" />
       </div>
 
-      {/* decorative left & right SVG foliage (overlap) */}
+      {/* decorative foliage */}
       <svg className="decor-left" width="560" height="760" viewBox="0 0 560 760" xmlns="http://www.w3.org/2000/svg" aria-hidden>
         <g fill="none" fillRule="evenodd">
           <path d="M0 420 C60 300 140 250 220 180 C300 110 360 70 430 40 C500 10 560 0 560 0 L560 760 L0 760 Z" fill="#DFF6E6" opacity="0.95" />
@@ -154,7 +147,6 @@ export default function WelcomePage() {
 
         <div className="welcome-card-content" role="region" aria-label="Welcome card content">
           <header className="welcome-top w-full">
-            {/* top-left floating logo badge (option B) */}
             <div className="logo-top-left" aria-hidden>
               <div className="logo-badge">
                 <Image src="/logo.png" width={64} height={64} alt="Greanly" className="rounded-full" />
@@ -169,7 +161,6 @@ export default function WelcomePage() {
             </div>
           </header>
 
-          {/* primary features: just the three boxes */}
           <section className="features-grid" aria-hidden>
             <div className="feature">
               <div className="feature-icon" aria-hidden>✓</div>
@@ -190,7 +181,6 @@ export default function WelcomePage() {
             </div>
           </section>
 
-          {/* CTA visible and centered */}
           <div className="cta-row">
             <button onClick={handleGetStarted} className="get-started cta-btn" aria-label="Get Started">
               <svg className="w-5 h-5 -ml-1" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" aria-hidden>
@@ -217,16 +207,15 @@ export default function WelcomePage() {
         </div>
       )}
 
-      {/* styles (including Playfair Display import for the title) */}
       <style jsx>{`
-        /* import display font for brand title */
+        /* Playfair for brand title */
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap');
 
         :root {
-          --accent-1: #0D3B2A; /* dark forest green (brand) */
+          --accent-1: #0D3B2A;
           --accent-2: #14503B;
-          --muted: rgba(16,32,26,0.6);
-          --card-text: #10201A; /* force same card text color in both themes */
+          --card-text-light: #10201A; /* light-mode card text */
+          --card-text-dark: #0F3A2E;  /* chosen B: deep green for dark-mode card text */
         }
 
         .welcome-hero {
@@ -234,10 +223,6 @@ export default function WelcomePage() {
           min-height: 100vh;
         }
 
-        /* header placement */
-        header { max-width: 1400px; margin: 0 auto; }
-
-        /* background shapes */
         .bg-circle { position: absolute; border-radius: 9999px; transform: translateZ(0); pointer-events: none; }
         .bg-circle.left { left: -240px; top: -160px; width: 880px; height: 880px; background: linear-gradient(135deg, rgba(223,246,230,1), rgba(201,240,209,0.96)); filter: blur(90px); opacity: 0.6; }
         .bg-circle.right { right: -180px; bottom: -220px; width: 720px; height: 720px; background: linear-gradient(135deg, rgba(240,255,246,1), rgba(217,247,228,0.96)); filter: blur(72px); opacity: 0.52; }
@@ -252,42 +237,38 @@ export default function WelcomePage() {
         .welcome-card-wrapper { display:flex; justify-content:center; width:100%; pointer-events: auto; }
         .card-blob { position: absolute; width: 110%; height: auto; left: -5%; top: 8px; z-index: 6; opacity: 0.99; filter: drop-shadow(0 40px 92px rgba(13,59,42,0.08)); pointer-events: none; }
 
-        /* KEY CHANGE: force all content inside the blob to use the same dark text color */
+        /* FORCE: card text color depends on theme via CSS var */
         .welcome-card-content {
           position: relative; z-index: 40;
           width: min(1100px, 92%);
           margin: 36px 0;
-          padding: 56px 64px 72px; /* more bottom padding so CTA is firmly inside blob */
+          padding: 56px 64px 72px;
           display:flex;
           flex-direction:column;
           gap:18px;
           align-items:center;
           text-align:center;
           pointer-events: auto;
-          min-height: 420px; /* ensure enough vertical space so CTA doesn't fall outside */
-          color: var(--card-text); /* enforced card text color (same in both modes) */
+          min-height: 420px;
+          color: var(--card-text-light); /* default (light) */
         }
 
-        /* logo top-left floating badge */
         .logo-top-left { position:absolute; left:44px; top:-28px; z-index: 42; width:78px; height:78px; border-radius:999px; background: linear-gradient(180deg, rgba(237,250,240,1), rgba(217,239,224,0.94)); box-shadow: 0 18px 44px rgba(13,59,42,0.06); display:flex; align-items:center; justify-content:center; padding:6px; }
         .logo-top-left img { border-radius:999px; display:block; }
 
-        /* fancy brand title */
         .welcome-title {
           font-family: 'Playfair Display', serif;
           font-weight: 900;
           font-size: 48px;
           margin: 0;
-          color: var(--accent-1); /* dark green for light mode */
+          color: var(--accent-1);
           letter-spacing: -0.6px;
           line-height: 1;
-          opacity: 1;
         }
 
-        /* IMPORTANT: subtitle and feature copy inherit the card color */
-        .welcome-sub { margin: 0; margin-top: 10px; color: inherit; max-width:880px; font-size:16px; line-height:1.6; opacity: 1; }
+        /* subtitle and feature copy inherit .welcome-card-content color (kept consistent across themes) */
+        .welcome-sub { margin: 0; margin-top: 10px; color: inherit; max-width:880px; font-size:16px; line-height:1.6; }
 
-        /* features */
         .features-grid { margin-top: 8px; width:100%; display:grid; grid-template-columns: repeat(3, 1fr); gap:18px; align-items:stretch; }
         .feature { background: linear-gradient(180deg, rgba(245,252,248,0.95), rgba(237,250,240,0.92)); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:8px; align-items:center; border:1px solid rgba(13,59,42,0.035); box-shadow:0 10px 36px rgba(13,59,42,0.03); transition: transform 180ms ease, box-shadow 180ms ease; color: inherit; }
         .feature:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(13,59,42,0.06); }
@@ -295,7 +276,6 @@ export default function WelcomePage() {
         .feature-title { font-weight:800; color: var(--accent-2); }
         .feature-sub { font-size:13px; color: rgba(16,32,26,0.56); }
 
-        /* CTA - force prominence and layering (same in both modes) */
         .cta-row { margin-top: 18px; display:flex; justify-content:center; width:100%; }
         .cta-btn {
           display:inline-flex;
@@ -303,7 +283,7 @@ export default function WelcomePage() {
           gap:12px;
           padding:14px 36px;
           border-radius:999px;
-          background: linear-gradient(135deg, #0D3B2A, #14503B); /* same look in both modes */
+          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
           color:#fff;
           font-weight:800;
           box-shadow:0 26px 64px rgba(13,59,42,0.18);
@@ -311,15 +291,13 @@ export default function WelcomePage() {
           cursor:pointer;
           transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms;
           position: relative;
-          z-index: 60; /* ensured above SVG blob & everything */
-          opacity: 1; /* ensure fully visible */
+          z-index: 60;
+          opacity: 1;
         }
         .cta-btn:hover { transform: translateY(-4px); box-shadow: 0 36px 92px rgba(13,59,42,0.22); }
-        .cta-btn:active { transform: translateY(-2px); }
 
         .welcome-foot { margin-top:20px; color: rgba(16,32,26,0.5); font-size:13px; }
 
-        /* leaves overlay */
         .leaves-overlay { pointer-events:none; position: fixed; inset: 0; z-index: 70; overflow: hidden; display:block; opacity:0; transition: opacity 260ms ease; }
         .leaves-overlay.active { opacity: 1; }
         .leaves-overlay .leaf { --size:22px; position:absolute; top:-12%; left: calc(var(--i) * 7%); width:var(--size); height: calc(var(--size) * 0.7); transform-origin:center; opacity:0; animation: leafFall ${LEAVES_DURATION_MS}ms cubic-bezier(.12,.78,.32,1) forwards; animation-delay: calc(var(--i) * 45ms); }
@@ -334,7 +312,7 @@ export default function WelcomePage() {
           100% { opacity:0; transform: translateY(110vh) translateX(18vw) rotate(380deg) scale(0.94); filter: drop-shadow(0 10px 18px rgba(8,20,12,0.06)); }
         }
 
-        /* responsive */
+        /* Responsive */
         @media (max-width: 1100px) {
           .decor-left, .decor-right { display:none; }
           .welcome-card-content { padding: 34px 22px 46px; min-height: auto; }
@@ -348,24 +326,13 @@ export default function WelcomePage() {
           .cta-btn { padding: 12px 18px; width:100%; justify-content:center; }
         }
 
-        /* Dark theme: keep blob copy identical (we already force card text color above),
-           but slightly adjust card backgrounds and shadows for contrast. */
-        :global(.dark) .welcome-hero {
-          background: linear-gradient(180deg, rgba(6,20,18,0.95), rgba(4,14,12,0.98));
-        }
-        :global(.dark) .card-blob { filter: drop-shadow(0 36px 96px rgba(0,0,0,0.6)); }
-        :global(.dark) .feature {
-          background: linear-gradient(180deg, rgba(10,36,30,0.58), rgba(6,28,24,0.46));
-          border: 1px solid rgba(255,255,255,0.04);
-          box-shadow: 0 10px 30px rgba(0,0,0,0.28);
-        }
-        :global(.dark) .feature-icon { color: #DFF6E6; background: linear-gradient(180deg, rgba(19,57,46,0.14), rgba(19,57,46,0.06)); }
-        :global(.dark) .feature-title { color: #DFF6E6; }
-        :global(.dark) .feature-sub { color: rgba(223,246,230,0.72); }
-
-        /* ensure title still uses brand green in light, and remains readable in dark */
-        :global(.dark) .welcome-title { color: #DFF6E6; }
-        /* BUT all normal copy inside blob stays the same dark color (we enforced .welcome-card-content color above) */
+        /* Dark mode: swap the card copy color variable to the chosen deep green (B) */
+        :global(.dark) .welcome-hero { background: linear-gradient(180deg, rgba(6,20,18,0.95), rgba(4,14,12,0.98)); }
+        :global(.dark) .welcome-card-content { color: var(--card-text-dark) !important; }
+        :global(.dark) .welcome-title { color: var(--card-text-dark) !important; }
+        :global(.dark) .feature { background: linear-gradient(180deg, rgba(10,36,30,0.58), rgba(6,28,24,0.46)); border: 1px solid rgba(255,255,255,0.04); box-shadow: 0 10px 30px rgba(0,0,0,0.28); color: var(--card-text-dark); }
+        :global(.dark) .feature-title { color: var(--card-text-dark); }
+        :global(.dark) .cta-btn { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); box-shadow: 0 28px 76px rgba(0,0,0,0.55); color: #fff; }
       `}</style>
     </main>
   );
