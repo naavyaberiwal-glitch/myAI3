@@ -1,13 +1,15 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* custom variant kept from your file */
 @custom-variant dark (&:is(.dark *));
 
+/* map theme tokens to the active CSS variables (keeps compatibility with any theme system you use) */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -43,84 +45,342 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* ------------------------
+   Brand variables (Greanly)
+   ------------------------ */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.995 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.1 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* radii & spacing */
+  --radius: 0.75rem; /* 12px - slightly larger for organic feel */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* brand colors */
+  --green-forest: #0D3B2A;   /* primary */
+  --green-leaf:   #D9EDC5;   /* background / assistant bubble */
+  --green-moss:   #14503B;   /* hover / accents */
+  --green-mint:   #ECF7E8;   /* soft surface */
+  --cream:         #F7F4E9;  /* highlight */
+  --earth-brown:  #7A6F5C;   /* optional accent */
+
+  /* neutral system */
+  --charcoal:     #1A1A1A;
+  --stone-grey:   #6A6A6A;
+  --light-grey:   #E7E7E7;
+  --white:        #FFFFFF;
+
+  /* utility tokens */
+  --background:   var(--green-mint);
+  --foreground:   var(--charcoal);
+  --card:         var(--white);
+  --card-foreground: var(--charcoal);
+  --popover:      var(--white);
+  --popover-foreground: var(--charcoal);
+
+  --primary:      var(--green-forest);
+  --primary-foreground: var(--white);
+  --secondary:    var(--green-moss);
+  --secondary-foreground: var(--white);
+
+  --muted:        var(--light-grey);
+  --muted-foreground: var(--stone-grey);
+
+  --accent:       var(--cream);
+  --accent-foreground: var(--charcoal);
+
+  --destructive:  #D9534F;
+
+  --border:       rgba(13,59,42,0.08); /* subtle green border */
+  --input:        rgba(13,59,42,0.04);
+  --ring:         rgba(72,168,118,0.18);
+
+  /* chart fallbacks (keeps compatibility with your app) */
+  --chart-1: #14503B;
+  --chart-2: #0D3B2A;
+  --chart-3: #48A876;
+  --chart-4: #4BC2B2;
+  --chart-5: #D9EDC5;
+
+  /* sidebar tokens (kept for layout compatibility) */
+  --sidebar: var(--white);
+  --sidebar-foreground: var(--charcoal);
+  --sidebar-primary: var(--green-forest);
+  --sidebar-primary-foreground: var(--white);
+  --sidebar-accent: var(--green-mint);
+  --sidebar-accent-foreground: var(--charcoal);
+  --sidebar-border: rgba(13,59,42,0.06);
+  --sidebar-ring: rgba(13,59,42,0.08);
 }
 
+/* Dark theme overrides */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background:   #071815; /* deep green-black */
+  --foreground:   #E7F5EE;
+  --card:         #0B2B22;
+  --card-foreground: #E7F5EE;
+  --popover:      #0B2B22;
+  --popover-foreground: #E7F5EE;
+
+  --primary:      #0B2B22; /* darker forest */
+  --primary-foreground: #E7F5EE;
+  --secondary:    #14503B;
+  --secondary-foreground: #E7F5EE;
+
+  --muted:        #0E2A22;
+  --muted-foreground: #A6C9B5;
+
+  --accent:       #0E2A22;
+  --accent-foreground: #E7F5EE;
+
+  --border:       rgba(255,255,255,0.04);
+  --input:        rgba(255,255,255,0.02);
+  --ring:         rgba(72,168,118,0.12);
+
+  --chart-1: #48A876;
+  --chart-2: #0D3B2A;
+  --chart-3: #4BC2B2;
+  --chart-4: #D9EDC5;
+  --chart-5: #7A6F5C;
+
+  --sidebar: #071815;
+  --sidebar-foreground: #E7F5EE;
+  --sidebar-primary: #48A876;
+  --sidebar-primary-foreground: #E7F5EE;
+  --sidebar-accent: #0D3B2A;
+  --sidebar-accent-foreground: #E7F5EE;
+  --sidebar-border: rgba(255,255,255,0.04);
+  --sidebar-ring: rgba(72,168,118,0.12);
 }
 
+/* ------------------------
+   Reusable visual utilities
+   ------------------------ */
+
+/* subtle green ambient shadow for cards and bubbles */
+:root, .dark {
+  --shadow-green: 0 8px 20px rgba(13,59,42,0.06);
+}
+
+/* ------------------------
+   Base layer (Tailwind + component mappings)
+   ------------------------ */
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    /* small tweak: keep your prior border and ring mapping but use brand tokens */
+    @apply border-border outline-none;
   }
+
+  html, body, #__next {
+    height: 100%;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    font-family: var(--font-sans, Inter), system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background-color: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.45;
+    -webkit-tap-highlight-color: transparent;
   }
-  
+
+  /* link defaults */
+  a {
+    color: var(--primary);
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* small helper — brand logo container */
+  .brand-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary-foreground);
+  }
+
+  /* header styles for the chat */
+  .chat-header {
+    @apply flex items-center justify-between px-4 py-3;
+    background: var(--card);
+    box-shadow: var(--shadow-green);
+    border-bottom: 1px solid var(--sidebar-border);
+    border-radius: calc(var(--radius) + 4px);
+  }
+
+  .chat-header-left {
+    @apply flex items-center gap-3;
+  }
+
+  .chat-brand-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    box-shadow: var(--shadow-green);
+  }
+
+  /* primary button */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition;
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+  .btn-primary:hover {
+    background: var(--secondary);
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition;
+    background: transparent;
+    color: var(--foreground);
+    border: 1px solid transparent;
+  }
+  .btn-ghost:hover {
+    border-color: var(--sidebar-border);
+  }
+
+  /* suggestion chips */
+  .suggestion-chip {
+    @apply inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm cursor-pointer select-none;
+    background: var(--green-mint);
+    color: var(--green-forest);
+    border: 1px solid rgba(20,80,59,0.08);
+    box-shadow: 0 4px 12px rgba(13,59,42,0.03);
+  }
+  .suggestion-chip:hover {
+    transform: translateY(-2px);
+    background: var(--green-moss);
+    color: var(--primary-foreground);
+  }
+
+  /* message bubbles */
+  .message-row {
+    display: flex;
+    gap: var(--space-md);
+    align-items: flex-end;
+  }
+
+  .message-assistant {
+    @apply max-w-[78%] p-4 rounded-2xl;
+    background: var(--green-leaf);
+    color: var(--green-forest);
+    box-shadow: var(--shadow-green);
+    border: 1px solid rgba(13,59,42,0.06);
+  }
+
+  .message-user {
+    @apply max-w-[78%] p-4 rounded-2xl ml-auto;
+    background: var(--card);
+    color: var(--card-foreground);
+    border: 1px solid rgba(13,59,42,0.06);
+  }
+
+  .message-meta {
+    @apply text-xs text-stone-500 mt-2;
+    color: var(--stone-grey);
+  }
+
+  /* textarea/input */
+  .chat-textarea {
+    @apply min-h-[44px] max-h-[220px] w-full p-3 rounded-xl resize-none border bg-transparent;
+    background: var(--green-mint);
+    border: 1px solid var(--input);
+    outline: none;
+  }
+  .chat-textarea:focus {
+    box-shadow: 0 0 0 6px var(--ring);
+    border-color: var(--secondary);
+  }
+
+  /* small utilities */
+  .pill {
+    border-radius: 9999px;
+  }
+
+  .soft-card {
+    background: var(--card);
+    color: var(--card-foreground);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-green);
+    border: 1px solid var(--sidebar-border);
+  }
+
+  /* subtle typing indicator */
+  .typing-indicator {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .typing-indicator .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: var(--green-moss);
+    opacity: 0.9;
+    animation: typing-dot 1s infinite linear;
+  }
+  .typing-indicator .dot:nth-child(2) {
+    animation-delay: 0.12s;
+  }
+  .typing-indicator .dot:nth-child(3) {
+    animation-delay: 0.24s;
+  }
+  @keyframes typing-dot {
+    0% { transform: translateY(0); opacity: 0.6; }
+    50% { transform: translateY(-6px); opacity: 1; }
+    100% { transform: translateY(0); opacity: 0.6; }
+  }
+
+  /* small responsive tweaks */
+  @media (max-width: 640px) {
+    .chat-header { padding: 12px; }
+    .chat-brand-badge { width: 40px; height: 40px; }
+  }
+
+  /* existing class you had — kept but aligned with brand */
   .single-char-link {
-    @apply bg-card text-card-foreground px-2 py-1 rounded-full hover:underline hover:scale-105 transition-all duration-100 !text-foreground !no-underline border-input border;
+    @apply bg-card text-card-foreground px-2 py-1 rounded-full transition-all duration-100 !no-underline;
+    border: 1px solid var(--input);
   }
 }
+
+/* ------------------------
+   Helper classes (layer utilities)
+   ------------------------ */
+@layer utilities {
+  .shadow-green-sm {
+    box-shadow: 0 6px 14px rgba(13,59,42,0.04);
+  }
+  .ring-ghost {
+    box-shadow: 0 0 0 6px var(--ring);
+  }
+  .border-subtle {
+    border-color: var(--sidebar-border);
+  }
+  .bg-assistant {
+    background: var(--green-leaf);
+  }
+  .text-brand {
+    color: var(--green-forest);
+  }
+  .bg-brand {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+  .bg-surface {
+    background: var(--green-mint);
+  }
+}
+
+/* End of file */
