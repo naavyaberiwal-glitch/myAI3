@@ -118,10 +118,21 @@ export default function Chat() {
   /* ---------------------- RENDER ---------------------- */
   return (
     <div className="flex h-screen justify-center">
-      <main className="w-full h-screen relative">
+      <main
+        className="w-full h-screen relative"
+        style={{
+          backgroundImage: `
+            linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92)),
+            url('/recycled-paper.png')
+          `,
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center bottom",
+          backgroundSize: "cover",
+        }}
+      >
 
         {/* HEADER */}
-        <div className="fixed top-0 left-0 right-0 z-50 pb-16 bg-white dark:bg-black">
+        <div className="fixed top-0 left-0 right-0 z-50 pb-16 bg-white/90 dark:bg-black/90 backdrop-blur-sm">
           <ChatHeader>
             <ChatHeaderBlock />
             <ChatHeaderBlock className="justify-center items-center">
@@ -138,10 +149,8 @@ export default function Chat() {
               <p>Chat with {AI_NAME}</p>
             </ChatHeaderBlock>
 
-            {/* Right controls: Theme toggle + New (clear) */}
             <ChatHeaderBlock className="justify-end items-center space-x-3">
               <ThemeToggle />
-
               <Button variant="outline" size="sm" onClick={clearChat}>
                 {CLEAR_CHAT_TEXT}
               </Button>
@@ -172,8 +181,8 @@ export default function Chat() {
           </div>
         </div>
 
-        {/* INPUT BAR */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-black pb-3 pt-13">
+        {/* INPUT */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-black/90 backdrop-blur-sm pb-3 pt-13">
           <div className="w-full px-5 flex justify-center">
             <div className="max-w-3xl w-full">
               <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -184,9 +193,7 @@ export default function Chat() {
                     render={({ field }) => (
                       <Field>
                         <FieldLabel className="sr-only">Message</FieldLabel>
-
                         <div className="relative">
-
                           <textarea
                             {...field}
                             ref={(el) => {
@@ -204,7 +211,7 @@ export default function Chat() {
                             }}
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
-                                if (e.shiftKey) return; // allow newline
+                                if (e.shiftKey) return;
                                 e.preventDefault();
                                 form.handleSubmit(onSubmit)();
                               }
