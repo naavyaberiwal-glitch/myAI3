@@ -54,29 +54,22 @@ const saveStorage = (messages: UIMessage[], durations: any) => {
 };
 
 /* ---------------------- HELPERS ---------------------- */
-
-// Normalize numbered list lines so numbering always starts at 1.
-// Example: lines starting "2. ..." become "1. ...", "3. ..." -> "2. ...", etc.
 function normalizeNumberedList(text: string) {
   if (!text) return text;
   const lines = text.split("\n");
-  // detect only if there is at least one numbered line anywhere
   const numbered = lines.map((ln) => ln.match(/^\s*(\d+)\.\s+/) ? true : false);
   if (!numbered.some(Boolean)) return text;
 
-  // Build new lines: renumber sequentially for continuous blocks
   let counter = 0;
   return lines
     .map((ln) => {
       const m = ln.match(/^\s*(\d+)\.\s+(.*)$/);
       if (m) {
-        // if previous line wasn't numbered and we start a new block, reset to 1
         if (counter === 0) counter = 1;
         const newLine = `${counter}. ${m[2]}`;
         counter++;
         return newLine;
       } else {
-        // non-number lines -> reset counter
         counter = 0;
         return ln;
       }
@@ -105,12 +98,9 @@ export default function Chat() {
     setIsClient(true);
     setDurations(stored.durations);
     setMessages(stored.messages);
-    // ensure we keep the stored messages visible
-    // small delay to let DOM paint
+    // small scroll correction after mount
     setTimeout(() => {
-      if (messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop = 0;
-      }
+      if (messagesContainerRef.current) messagesContainerRef.current.scrollTop = 0;
     }, 80);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -119,7 +109,7 @@ export default function Chat() {
     if (isClient) saveStorage(messages, durations);
   }, [messages, durations, isClient]);
 
-  /* WELCOME MESSAGE (normalize numbering & ensure single insertion) */
+  /* WELCOME MESSAGE */
   useEffect(() => {
     if (!isClient || welcomeSeen.current || initialMessages.length > 0) return;
 
@@ -134,11 +124,8 @@ export default function Chat() {
     saveStorage([welcomeMsg], {});
     welcomeSeen.current = true;
 
-    // ensure the message area is visible and readable (scroll to top)
     setTimeout(() => {
-      if (messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop = 0;
-      }
+      if (messagesContainerRef.current) messagesContainerRef.current.scrollTop = 0;
     }, 120);
   }, [isClient]);
 
@@ -151,14 +138,10 @@ export default function Chat() {
   const onSubmit = (vals: any) => {
     sendMessage({ text: vals.message });
     form.reset();
-    if (inputRef.current) {
-      inputRef.current.style.height = "44px";
-    }
-    // ensure we reveal latest response once appended - small delay
+    if (inputRef.current) inputRef.current.style.height = "44px";
     setTimeout(() => {
-      if (messagesContainerRef.current) {
+      if (messagesContainerRef.current)
         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-      }
     }, 300);
   };
 
@@ -167,7 +150,6 @@ export default function Chat() {
     setDurations({});
     saveStorage([], {});
     toast.success("Chat cleared");
-    // ensure welcome message reappears next time
     welcomeSeen.current = false;
   }
 
@@ -176,9 +158,11 @@ export default function Chat() {
     <div className="flex h-screen justify-center bg-transparent">
       <main className="w-full h-screen relative">
 
-        {/* HEADER (glass) */}
-        <div className="fixed top-0 left-0 right-0 z-50 pb-16"
-             style={{ backdropFilter: "saturate(120%) blur(6px)" }}>
+        {/* HEADER (fixed + ensured above overlay) */}
+        <div
+          className="fixed top-0 left-0 right-0 pb-16"
+          style={{ zIndex: 80, backdropFilter: "saturate(120%) blur(6px)" }}
+        >
           <div className="bg-white/85 dark:bg-black/85">
             <ChatHeader>
               <ChatHeaderBlock />
@@ -210,21 +194,19 @@ export default function Chat() {
         {/* MESSAGES */}
         <div
           ref={messagesContainerRef}
-          className="h-screen overflow-y-auto px-5 py-4 pt-[108px] pb-[190px] flex flex-col items-center"
+          className="h-screen overflow-y-auto px-5 py-4 pt-[120px] pb-[200px] flex flex-col items-center"
         >
-          {/* central content column with readable surface so the paper texture doesn't wash text out */}
           <div className="w-full max-w-3xl">
             <div
               className="rounded-2xl p-6"
               style={{
-                background: "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.92))",
+                background: "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.94))",
                 border: "1px solid rgba(13,59,42,0.04)",
                 boxShadow: "0 20px 60px rgba(13,59,42,0.04)",
                 minHeight: 420,
               }}
             >
               <div className="mb-4 text-sm text-slate-600 dark:text-slate-300">
-                {/* Helpful short instruction above messages (keeps the UX friendly) */}
                 Ask me about sustainability, suppliers, or request a 30/60/90 plan.
               </div>
 
@@ -255,10 +237,10 @@ export default function Chat() {
           </div>
         </div>
 
-        {/* INPUT BAR (glass pill) */}
+        {/* INPUT BAR (fixed and above overlay) */}
         <div
-          className="fixed bottom-0 left-0 right-0 z-50"
-          style={{ backdropFilter: "saturate(120%) blur(6px)" }}
+          className="fixed bottom-0 left-0 right-0"
+          style={{ zIndex: 80, backdropFilter: "saturate(120%) blur(6px)" }}
         >
           <div className="bg-white/92 dark:bg-black/92 pb-3 pt-3">
             <div className="w-full px-5 flex justify-center">
