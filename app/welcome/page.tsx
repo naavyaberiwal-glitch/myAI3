@@ -1,7 +1,8 @@
-// app/page.tsx
-// helpful code
+// app/welcome/page.tsx
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useCallback } from "react";
 
@@ -68,7 +69,7 @@ export default function WelcomePage() {
         await audioRef.current.play();
       }
     } catch {
-      // ignore
+      // ignore autoplay errors
     }
 
     // mount leaves container first (so CSS + DOM exist), then activate with small delay
@@ -105,77 +106,117 @@ export default function WelcomePage() {
   ));
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden bg-gradient-to-b from-emerald-50 to-white">
-      {/* background decorative circles */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-20">
-        <div className="absolute -left-40 -top-40 w-[520px] h-[520px] rounded-full bg-gradient-to-tr from-[#DFF6E6] to-[#C9F0D1] opacity-60 blur-3xl" />
-        <div className="absolute -right-32 -bottom-44 w-[420px] h-[420px] rounded-full bg-gradient-to-br from-[#F0FFF6] to-[#D9F7E4] opacity-55 blur-2xl" />
+    <main className="welcome-hero min-h-screen w-full flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Gradient background + subtle large blobs */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-20 welcome-bg">
+        <div className="bg-circle left" />
+        <div className="bg-circle right" />
       </div>
 
-      {/* card */}
-      <div
-        className="relative z-10 w-full max-w-3xl mx-auto rounded-2xl py-10 px-8 md:px-16 shadow-xl"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(255,255,255,0.92), rgba(245,255,245,0.78))",
-          backdropFilter: "saturate(140%) blur(6px)",
-          border: "1px solid rgba(24,32,20,0.06)",
-        }}
-      >
-        <div className="flex flex-col items-center text-center gap-6">
-          {/* logo */}
-          <div className="relative animate-logo-lift">
-            <div aria-hidden className="absolute -inset-6 rounded-full -z-10 shimmer-ring" style={{ width: 168, height: 168 }} />
-            <div className="inline-flex items-center justify-center w-28 h-28 rounded-full bg-white/90 shadow-md">
-              <img src="/logo.png" alt="Greanly logo" width={92} height={92} />
-            </div>
-          </div>
+      {/* decorative left & right inline SVG foliage */}
+      <svg className="decor-left" width="420" height="640" viewBox="0 0 420 640" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <g fill="none" fillRule="evenodd">
+          <path d="M0 360 C40 260 90 220 140 160 C190 100 240 70 300 40 C350 15 420 10 420 10 L420 640 L0 640 Z"
+            fill="#DFF6E6" opacity="0.95" />
+          <g transform="translate(18,40)" opacity="0.98">
+            <path d="M30 420 C56 340 120 300 160 250 C200 200 230 170 290 140" stroke="#14503B" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.14"/>
+            <path d="M40 380 C72 336 120 310 160 280" stroke="#0D3B2A" strokeWidth="4" strokeLinecap="round" strokeOpacity="0.18"/>
+            <ellipse cx="40" cy="240" rx="34" ry="14" fill="#0D3B2A" opacity="0.12" />
+            <ellipse cx="78" cy="200" rx="26" ry="12" fill="#14503B" opacity="0.08" />
+            <ellipse cx="118" cy="160" rx="36" ry="15" fill="#0D3B2A" opacity="0.14" />
+          </g>
+        </g>
+      </svg>
 
-          {/* hero */}
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">Greanly</h1>
-          <p className="max-w-2xl text-neutral-700 text-base md:text-lg">
-            Make your business greener — practical, measurable steps that save money and reduce waste.
-          </p>
+      <svg className="decor-right" width="520" height="720" viewBox="0 0 520 720" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <g fill="none" fillRule="evenodd">
+          <path d="M520 20 C420 80 380 160 320 220 C260 280 200 340 160 420 C120 500 80 580 40 640 L0 720 L520 720 Z"
+            fill="#E9FBF3" opacity="0.95" />
+          <g transform="translate(70,20)" opacity="0.98">
+            <path d="M50 80 C96 140 140 180 190 220 C240 260 270 300 320 360" stroke="#14503B" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.14"/>
+            <path d="M60 120 C112 180 160 220 200 260" stroke="#0D3B2A" strokeWidth="4" strokeLinecap="round" strokeOpacity="0.18"/>
+            <ellipse cx="240" cy="340" rx="26" ry="12" fill="#14503B" opacity="0.10" />
+            <ellipse cx="200" cy="300" rx="18" ry="8" fill="#0D3B2A" opacity="0.08" />
+          </g>
+        </g>
+      </svg>
 
-          {/* three benefit tiles */}
-          <div className="mt-4 w-full max-w-2xl grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="flex flex-col items-center gap-3 p-4 rounded-md bg-white/50 border border-transparent">
-              <div className="w-10 h-10 flex items-center justify-center rounded-full bg-emerald-100 text-emerald-700">✓</div>
-              <div className="text-sm text-slate-700">Cut costs & waste with practical steps</div>
-            </div>
-            <div className="flex flex-col items-center gap-3 p-4 rounded-md bg-white/50 border border-transparent">
-              <div className="w-10 h-10 flex items-center justify-center rounded-full bg-emerald-100 text-emerald-700">🔎</div>
-              <div className="text-sm text-slate-700">Find sustainable suppliers & materials</div>
-            </div>
-            <div className="flex flex-col items-center gap-3 p-4 rounded-md bg-white/50 border border-transparent">
-              <div className="w-10 h-10 flex items-center justify-center rounded-full bg-emerald-100 text-emerald-700">⚙️</div>
-              <div className="text-sm text-slate-700">Simple action plans (30/60/90 days)</div>
-            </div>
-          </div>
+      {/* main card wrapper with organic SVG blob */}
+      <div className="welcome-card-wrapper z-10">
+        <svg className="card-blob" viewBox="0 0 900 560" preserveAspectRatio="none" aria-hidden>
+          <defs>
+            <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="20" stdDeviation="40" floodColor="rgba(13,59,42,0.06)" />
+            </filter>
+          </defs>
+          <path
+            d="M120 40 C240 -10 520 -10 680 40 C800 75 880 170 860 290 C840 410 720 520 540 520 C360 520 160 500 110 410 C60 320 80 160 120 40 Z"
+            fill="#FFFFFF"
+            filter="url(#softShadow)"
+          />
+        </svg>
 
-          {/* CTA */}
-          <div className="mt-6">
+        <div className="welcome-card-content">
+          <header className="welcome-top">
+            {/* top-left logo badge */}
+            <div className="logo-top-left" aria-hidden>
+              <div className="logo-badge">
+                <Image src="/logo.png" width={56} height={56} alt="Greanly" className="rounded-full" />
+              </div>
+            </div>
+
+            <div className="brand-header">
+              <h1 className="welcome-title">Greanly</h1>
+              <p className="welcome-sub">
+                Make your business greener — practical, measurable steps that save money and reduce waste.
+              </p>
+            </div>
+          </header>
+
+          <section className="features-grid" aria-hidden>
+            <div className="feature">
+              <div className="feature-icon">✓</div>
+              <div className="feature-title">Cut costs & waste</div>
+              <div className="feature-sub">Practical steps you can use now</div>
+            </div>
+
+            <div className="feature">
+              <div className="feature-icon">🔍</div>
+              <div className="feature-title">Find better suppliers</div>
+              <div className="feature-sub">Sustainable materials & vendors</div>
+            </div>
+
+            <div className="feature">
+              <div className="feature-icon">⚙️</div>
+              <div className="feature-title">Action plans (30/60/90)</div>
+              <div className="feature-sub">Simple prioritized next steps</div>
+            </div>
+          </section>
+
+          <div className="cta-row">
             <button
               onClick={handleGetStarted}
-              className="get-started inline-flex items-center gap-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-7 py-3 rounded-full shadow-lg transform transition active:scale-95"
+              className="get-started cta-btn"
               aria-label="Get Started with Greanly"
             >
-              <svg className="w-5 h-5 -ml-1" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none">
+              <svg className="w-5 h-5 -ml-1" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" fill="none" aria-hidden>
                 <path d="M5 12h14" strokeLinecap="round" />
                 <path d="M12 5l7 7-7 7" strokeLinecap="round" />
               </svg>
-              Get Started
+              <span>Get Started</span>
             </button>
           </div>
+
+          <footer className="welcome-foot">
+            <small>Built with care • AI + practical sustainability tips</small>
+          </footer>
         </div>
       </div>
 
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-sm text-slate-600/80 z-10">Built with care • AI + practical sustainability tips</div>
-
-      {/* audio (will be triggered by the click) */}
+      {/* audio */}
       <audio ref={audioRef} src="/ambient-forest.mp3" preload="auto" />
 
-      {/* leaves overlay: mounted only when needed to avoid any initial paint issues */}
+      {/* leaves overlay */}
       {leavesMounted && (
         <div className={`leaves-overlay ${leavesActive ? "active" : ""}`} aria-hidden>
           {leaves}
@@ -183,32 +224,76 @@ export default function WelcomePage() {
       )}
 
       <style jsx>{`
-        .get-started:hover {
-          transform: translateY(-6px) scale(1.02);
-          box-shadow: 0 18px 40px rgba(16, 185, 129, 0.18), 0 6px 18px rgba(16, 185, 129, 0.06);
+        /* layout & background */
+        .welcome-hero {
+          background: linear-gradient(180deg, rgba(237,250,240,1) 0%, rgba(245,252,248,1) 100%);
         }
 
-        .animate-logo-lift { animation: lift 900ms cubic-bezier(0.2,0.9,0.2,1) both; }
-        .shimmer-ring { background: radial-gradient(circle at 30% 30%, rgba(165,255,205,0.95) 0%, rgba(165,255,205,0.6) 18%, rgba(255,255,255,0.02) 60%); filter: blur(28px); opacity: 0.95; animation: shimmerScale 3200ms ease-in-out infinite; }
-        @keyframes shimmerScale { 0% { transform: scale(0.96) rotate(0deg); opacity: 0.75; } 50% { transform: scale(1.03) rotate(7deg); opacity: 1; } 100% { transform: scale(0.96) rotate(0deg); opacity: 0.75; } }
-        @keyframes lift { from { transform: translateY(14px) scale(0.98); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+        .welcome-bg { position: absolute; inset: 0; z-index: -30; pointer-events: none; }
+        .bg-circle { position: absolute; border-radius: 9999px; filter: blur(56px); transform: translateZ(0); }
+        .bg-circle.left { left: -160px; top: -160px; width: 520px; height: 520px; background: linear-gradient(135deg, #DFF6E6, #C9F0D1); opacity: 0.6; }
+        .bg-circle.right { right: -120px; bottom: -160px; width: 420px; height: 420px; background: linear-gradient(135deg, #F0FFF6, #D9F7E4); opacity: 0.55; }
+
+        /* decorative svg positions */
+        .decor-left, .decor-right { position: absolute; z-index: -10; pointer-events: none; opacity: 0.98; filter: drop-shadow(0 10px 30px rgba(13,59,42,0.04)); }
+        .decor-left { left: 8px; top: 8%; max-width: 360px; transform: translateX(-6%); }
+        .decor-right { right: 8px; bottom: 2%; max-width: 460px; transform: translateX(6%); }
+
+        .welcome-card-wrapper {
+          position: relative;
+          z-index: 10;
+          width: min(1080px, 92%);
+          margin: 48px auto;
+          display: grid;
+          place-items: center;
+          pointer-events: auto;
+        }
+
+        .card-blob { position: absolute; width: 100%; height: auto; left: 0; top: 0; z-index: 0; overflow: visible; }
+
+        .welcome-card-content {
+          position: relative;
+          z-index: 1;
+          width: 86%;
+          max-width: 920px;
+          padding: 72px 64px;
+          display: flex;
+          flex-direction: column;
+          gap: 28px;
+          align-items: center;
+          text-align: center;
+          background: transparent;
+        }
+
+        .welcome-top { width: 100%; display:flex; align-items:center; justify-content:center; gap:24px; position:relative; }
+
+        .logo-top-left { position:absolute; left:42px; top:-12px; z-index:4; display:flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:9999px; background: linear-gradient(180deg, rgba(237,250,240,1), rgba(217,239,224,0.9)); box-shadow: 0 10px 30px rgba(13,59,42,0.06); padding:6px; }
+
+        .welcome-title { font-size:38px; line-height:1; font-weight:800; margin:0; color: #10201A; letter-spacing:-0.6px; }
+        .welcome-sub { margin-top:12px; font-size:16px; color: rgba(16,32,26,0.75); max-width:760px; margin-left:auto; margin-right:auto; line-height:1.7; }
+
+        .features-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:18px; width:100%; margin-top:6px; justify-items:center; }
+        .feature { display:flex; flex-direction:column; gap:8px; align-items:center; padding:18px 24px; border-radius:14px; background: linear-gradient(180deg, rgba(245,252,248,0.9), rgba(237,250,240,0.86)); box-shadow:0 10px 26px rgba(13,59,42,0.03); border:1px solid rgba(13,59,42,0.03); min-height:96px; width:100%; max-width:300px; transition: transform 220ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms; }
+        .feature:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(13,59,42,0.06); }
+
+        .feature-icon { width:44px; height:44px; border-radius:999px; background: rgba(13,59,42,0.06); display:grid; place-items:center; font-size:16px; color:#0D3B2A; }
+        .feature-title { font-weight:700; font-size:15px; color:#10201A; }
+        .feature-sub { font-size:13px; color: rgba(16,32,26,0.6); }
+
+        .cta-row { display:flex; justify-content:center; width:100%; }
+        .cta-btn { display:inline-flex; align-items:center; gap:12px; padding:14px 28px; border-radius:28px; background: linear-gradient(135deg, #0D3B2A, #14503B); color:#fff; font-weight:700; text-decoration:none; box-shadow:0 14px 40px rgba(13,59,42,0.12); transform: translateY(0); transition: transform 180ms ease, box-shadow 180ms ease; font-size:16px; border:none; cursor:pointer; }
+        .cta-btn:hover { transform: translateY(-4px); box-shadow:0 22px 56px rgba(13,59,42,0.16); }
+
+        .welcome-foot { margin-top:6px; color: rgba(16,32,26,0.5); font-size:13px; }
+
+        /* Get-started button micro-interaction */
+        .get-started { transition: transform 220ms ease, box-shadow 220ms ease; }
+        .get-started:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 18px 40px rgba(16,185,129,0.14), 0 6px 18px rgba(16,185,129,0.06); }
 
         /* Leaves overlay */
-        .leaves-overlay {
-          pointer-events: none;
-          position: fixed;
-          inset: 0;
-          z-index: 60;
-          overflow: hidden;
-          display: block;
-          opacity: 0;
-          transition: opacity 260ms ease;
-        }
-        .leaves-overlay.active {
-          opacity: 1;
-        }
+        .leaves-overlay { pointer-events: none; position: fixed; inset: 0; z-index: 60; overflow: hidden; display: block; opacity: 0; transition: opacity 260ms ease; }
+        .leaves-overlay.active { opacity: 1; }
 
-        /* each leaf is an empty span; visual is built with ::before / ::after so no emoji text appears */
         .leaves-overlay .leaf {
           --size: 22px;
           position: absolute;
@@ -222,7 +307,6 @@ export default function WelcomePage() {
           animation-delay: calc(var(--i) * 45ms);
         }
 
-        /* decorative leaf shape using pseudo-elements (no emoji glyphs) */
         .leaves-overlay .leaf::before {
           content: "";
           display: block;
@@ -246,7 +330,6 @@ export default function WelcomePage() {
           opacity: 0.9;
         }
 
-        /* variety in sizes */
         .leaves-overlay .leaf:nth-child(3n) { --size: 26px; }
         .leaves-overlay .leaf:nth-child(4n) { --size: 18px; }
 
@@ -271,8 +354,24 @@ export default function WelcomePage() {
           }
         }
 
-        @media (max-width: 640px) {
-          .leaves-overlay .leaf { left: calc(var(--i) * 6%); --size: 14px; }
+        /* responsive */
+        @media (max-width: 1100px) {
+          .decor-left, .decor-right { display: none; }
+          .welcome-card-content { padding: 42px 28px; }
+          .logo-top-left { left: 22px; top: -8px; }
+          .welcome-title { font-size: 30px; }
+          .features-grid { grid-template-columns: 1fr; gap: 12px; }
+          .welcome-card-wrapper { margin: 24px auto; width: min(920px, 94%); }
+        }
+
+        @media (max-width: 480px) {
+          .welcome-card-content { padding: 28px 18px; }
+          .logo-top-left { display: none; }
+          .welcome-title { font-size: 22px; }
+          .welcome-sub { font-size: 14px; line-height: 1.5; }
+          .feature { min-height: auto; padding: 12px; border-radius: 12px; }
+          .cta-btn { width: 100%; justify-content: center; padding: 12px 20px; }
+          .decor-left, .decor-right { display: none; }
         }
       `}</style>
     </main>
