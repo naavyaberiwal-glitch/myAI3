@@ -226,6 +226,7 @@ export default function WelcomePage() {
           --accent-1: #0D3B2A; /* dark forest green (brand) */
           --accent-2: #14503B;
           --muted: rgba(16,32,26,0.6);
+          --card-text: #10201A; /* force same card text color in both themes */
         }
 
         .welcome-hero {
@@ -251,6 +252,7 @@ export default function WelcomePage() {
         .welcome-card-wrapper { display:flex; justify-content:center; width:100%; pointer-events: auto; }
         .card-blob { position: absolute; width: 110%; height: auto; left: -5%; top: 8px; z-index: 6; opacity: 0.99; filter: drop-shadow(0 40px 92px rgba(13,59,42,0.08)); pointer-events: none; }
 
+        /* KEY CHANGE: force all content inside the blob to use the same dark text color */
         .welcome-card-content {
           position: relative; z-index: 40;
           width: min(1100px, 92%);
@@ -263,6 +265,7 @@ export default function WelcomePage() {
           text-align:center;
           pointer-events: auto;
           min-height: 420px; /* ensure enough vertical space so CTA doesn't fall outside */
+          color: var(--card-text); /* enforced card text color (same in both modes) */
         }
 
         /* logo top-left floating badge */
@@ -281,17 +284,18 @@ export default function WelcomePage() {
           opacity: 1;
         }
 
-        .welcome-sub { margin: 0; margin-top: 10px; color: var(--muted); max-width:880px; font-size:16px; line-height:1.6; opacity: 1; }
+        /* IMPORTANT: subtitle and feature copy inherit the card color */
+        .welcome-sub { margin: 0; margin-top: 10px; color: inherit; max-width:880px; font-size:16px; line-height:1.6; opacity: 1; }
 
         /* features */
         .features-grid { margin-top: 8px; width:100%; display:grid; grid-template-columns: repeat(3, 1fr); gap:18px; align-items:stretch; }
-        .feature { background: linear-gradient(180deg, rgba(245,252,248,0.95), rgba(237,250,240,0.92)); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:8px; align-items:center; border:1px solid rgba(13,59,42,0.035); box-shadow:0 10px 36px rgba(13,59,42,0.03); transition: transform 180ms ease, box-shadow 180ms ease; }
+        .feature { background: linear-gradient(180deg, rgba(245,252,248,0.95), rgba(237,250,240,0.92)); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:8px; align-items:center; border:1px solid rgba(13,59,42,0.035); box-shadow:0 10px 36px rgba(13,59,42,0.03); transition: transform 180ms ease, box-shadow 180ms ease; color: inherit; }
         .feature:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(13,59,42,0.06); }
         .feature-icon { width:56px; height:56px; border-radius:999px; display:grid; place-items:center; font-size:18px; color:var(--accent-1); background: linear-gradient(180deg, rgba(236,247,232,0.94), rgba(217,237,224,0.9)); box-shadow: inset 0 1px 0 rgba(255,255,255,0.55); }
         .feature-title { font-weight:800; color: var(--accent-2); }
         .feature-sub { font-size:13px; color: rgba(16,32,26,0.56); }
 
-        /* CTA - force prominence and layering */
+        /* CTA - force prominence and layering (same in both modes) */
         .cta-row { margin-top: 18px; display:flex; justify-content:center; width:100%; }
         .cta-btn {
           display:inline-flex;
@@ -299,7 +303,7 @@ export default function WelcomePage() {
           gap:12px;
           padding:14px 36px;
           border-radius:999px;
-          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+          background: linear-gradient(135deg, #0D3B2A, #14503B); /* same look in both modes */
           color:#fff;
           font-weight:800;
           box-shadow:0 26px 64px rgba(13,59,42,0.18);
@@ -307,7 +311,8 @@ export default function WelcomePage() {
           cursor:pointer;
           transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms;
           position: relative;
-          z-index: 45; /* ensure above SVG blob & everything */
+          z-index: 60; /* ensured above SVG blob & everything */
+          opacity: 1; /* ensure fully visible */
         }
         .cta-btn:hover { transform: translateY(-4px); box-shadow: 0 36px 92px rgba(13,59,42,0.22); }
         .cta-btn:active { transform: translateY(-2px); }
@@ -315,7 +320,7 @@ export default function WelcomePage() {
         .welcome-foot { margin-top:20px; color: rgba(16,32,26,0.5); font-size:13px; }
 
         /* leaves overlay */
-        .leaves-overlay { pointer-events:none; position: fixed; inset: 0; z-index: 60; overflow: hidden; display:block; opacity:0; transition: opacity 260ms ease; }
+        .leaves-overlay { pointer-events:none; position: fixed; inset: 0; z-index: 70; overflow: hidden; display:block; opacity:0; transition: opacity 260ms ease; }
         .leaves-overlay.active { opacity: 1; }
         .leaves-overlay .leaf { --size:22px; position:absolute; top:-12%; left: calc(var(--i) * 7%); width:var(--size); height: calc(var(--size) * 0.7); transform-origin:center; opacity:0; animation: leafFall ${LEAVES_DURATION_MS}ms cubic-bezier(.12,.78,.32,1) forwards; animation-delay: calc(var(--i) * 45ms); }
         .leaves-overlay .leaf::before { content:""; display:block; width:100%; height:100%; border-radius: 40% 60% 40% 60% / 60% 40% 60% 40%; transform: rotate(-18deg); background: linear-gradient(160deg, rgba(34,139,34,0.95), rgba(106,201,117,0.92)); box-shadow: 0 6px 10px rgba(8,20,12,0.06); }
@@ -343,29 +348,24 @@ export default function WelcomePage() {
           .cta-btn { padding: 12px 18px; width:100%; justify-content:center; }
         }
 
-        /* Dark theme overrides (applies when .dark is present on html/body) */
+        /* Dark theme: keep blob copy identical (we already force card text color above),
+           but slightly adjust card backgrounds and shadows for contrast. */
         :global(.dark) .welcome-hero {
           background: linear-gradient(180deg, rgba(6,20,18,0.95), rgba(4,14,12,0.98));
         }
-        :global(.dark) .welcome-title {
-          color: #DFF6E6; /* keep title visible and brand-like in dark mode */
-          opacity: 1;
-        }
-        :global(.dark) .welcome-sub { color: rgba(223,246,230,0.88); opacity: 1; }
+        :global(.dark) .card-blob { filter: drop-shadow(0 36px 96px rgba(0,0,0,0.6)); }
         :global(.dark) .feature {
-          background: linear-gradient(180deg, rgba(10,36,30,0.48), rgba(6,28,24,0.42));
+          background: linear-gradient(180deg, rgba(10,36,30,0.58), rgba(6,28,24,0.46));
           border: 1px solid rgba(255,255,255,0.04);
-          box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.28);
         }
-        :global(.dark) .feature-title, :global(.dark) .feature-icon { color: #DFF6E6; }
-        :global(.dark) .feature-sub { color: rgba(223,246,230,0.7); }
+        :global(.dark) .feature-icon { color: #DFF6E6; background: linear-gradient(180deg, rgba(19,57,46,0.14), rgba(19,57,46,0.06)); }
+        :global(.dark) .feature-title { color: #DFF6E6; }
+        :global(.dark) .feature-sub { color: rgba(223,246,230,0.72); }
 
-        /* Ensure CTA is still highly visible in dark mode */
-        :global(.dark) .cta-btn {
-          background: linear-gradient(135deg, #0B2B22, #14503B);
-          box-shadow: 0 28px 76px rgba(0,0,0,0.55);
-          color: #E7F5EE;
-        }
+        /* ensure title still uses brand green in light, and remains readable in dark */
+        :global(.dark) .welcome-title { color: #DFF6E6; }
+        /* BUT all normal copy inside blob stays the same dark color (we enforced .welcome-card-content color above) */
       `}</style>
     </main>
   );
