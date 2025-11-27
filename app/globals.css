@@ -1,265 +1,93 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Custom dark variant (keeps compatibility with your setup) */
 @custom-variant dark (&:is(.dark *));
 
-/* Theme mapping (keeps tokens intact for Tailwind components) */
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --radius-lg: var(--radius);
-}
-
-/* ----------------------------------
-   BRAND / THEME VARIABLES
----------------------------------- */
+/* THEME TOKENS */
 :root {
-  --radius: 0.875rem;
+  --font-sans: Inter, system-ui, sans-serif;
 
-  /* Brand palette */
-  --green-forest: #0D3B2A;
-  --green-leaf: #D9EDC5;
-  --green-moss: #14503B;
-  --green-mint: #ECF7E8;
-  --cream: #F7F4E9;
+  --green-forest: #0d3b2a;
+  --green-leaf: #d9edc5;
+  --green-moss: #14503b;
+  --green-mint: #ecf7e8;
+  --white: #ffffff;
+  --black: #0e0e0e;
 
-  /* Neutrals */
-  --charcoal: #10201A;
-  --stone-grey: #6A6A6A;
-  --white: #FFFFFF;
+  --foreground: #10201a;
+  --background: #f4faf4;
 
-  /* Background gradient */
-  --background-gradient-start: rgba(237,250,240,0.85);
-  --background-gradient-end: rgba(245,252,248,0.97);
+  --card-bg: #ffffff;
+  --card-border: rgba(0,0,0,0.06);
+  --card-shadow: 0 10px 40px rgba(0,0,0,0.06);
 
-  --background: var(--background-gradient-start);
-  --foreground: var(--charcoal);
-
-  /* UI tokens */
-  --border: rgba(13,59,42,0.07);
-  --input: rgba(13,59,42,0.05);
-  --ring: rgba(72,168,118,0.20);
-
-  --primary: var(--green-forest);
-  --primary-foreground: var(--white);
-
-  /* Paper texture (same filename as you requested) */
-  --paper-url: "/recycled-paper.png";
-  --paper-opacity: 0.80;
-  --paper-size: 2200px 2200px;
-  --paper-blend: multiply;
+  --paper: url("/recycled-paper.png"); /* your real png */
 }
 
-/* Dark mode overrides */
 .dark {
-  --background-gradient-start: rgba(6,23,18,0.85);
-  --background-gradient-end: rgba(10,28,23,0.95);
+  --foreground: #e2f7e9;
+  --background: #0c1813;
 
-  --background: #071815;
-  --foreground: #E7F5EE;
-
-  --border: rgba(255,255,255,0.04);
-  --input: rgba(255,255,255,0.07);
-  --ring: rgba(72,168,118,0.15);
-
-  --paper-opacity: 0.75;
-  --paper-blend: normal;
+  --card-bg: #10201a;
+  --card-border: rgba(255,255,255,0.05);
+  --card-shadow: 0 10px 40px rgba(0,0,0,0.4);
 }
 
-/* ----------------------------------
-   BASE LAYER
----------------------------------- */
-@layer base {
-  * {
-    box-sizing: border-box;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+/* BASE STYLES */
+body {
+  font-family: var(--font-sans);
+  margin: 0;
+  color: var(--foreground);
 
-  html, body, #__next {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-  }
-
-  body {
-    font-family: var(--font-sans, Inter), system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    color: var(--foreground);
-
-    /* Gradient + recycled paper background (same filename) */
-    background-image:
-      linear-gradient(180deg, var(--background-gradient-start), var(--background-gradient-end)),
-      url("/recycled-paper.png");
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center center;
-    background-attachment: fixed;
-
-    line-height: 1.55;
-    position: relative;
-    z-index: 0;
-  }
-
-  /* Ensure fixed UI elements appear above overlay by default */
-  .fixed { position: fixed; z-index: 60; }
-
-  /* Basic app container */
-  .app-container {
-    max-width: 1100px;
-    margin: 34px auto;
-    padding: 28px;
-    min-height: calc(100vh - 68px);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Cards */
-  .soft-card {
-    background: var(--white);
-    color: var(--charcoal);
-    border-radius: calc(var(--radius) + 4px);
-    box-shadow: 0 18px 40px rgba(13,59,42,0.06), 0 2px 6px rgba(13,59,42,0.03);
-    border: 1px solid var(--border);
-    padding: 18px;
-  }
-
-  /* Header / Brand */
-  .brand-row { display:flex; align-items:center; gap:14px; margin-bottom:6px; }
-  .chat-header {
-    display:flex; align-items:center; justify-content:space-between; gap:16px;
-    padding:18px; border-radius:calc(var(--radius)+4px);
-    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.35));
-    box-shadow: 0 10px 30px rgba(13,59,42,0.04);
-    border: 1px solid var(--border);
-    z-index: 70; /* ensure header UI sits above overlay */
-    position: relative;
-  }
-
-  .chat-brand-badge {
-    width:54px; height:54px; min-width:54px; border-radius:12px;
-    background: linear-gradient(180deg, var(--primary), var(--green-moss));
-    color: var(--primary-foreground);
-    display:inline-flex; align-items:center; justify-content:center;
-    font-weight:700; font-size:18px; box-shadow: 0 12px 30px rgba(13,59,42,0.08);
-    border:1px solid rgba(255,255,255,0.02);
-  }
-
-  .brand-title { font-size:18px; font-weight:700; color:var(--foreground); letter-spacing:-0.01em; }
-  .brand-sub { font-size:13px; color:var(--stone-grey); }
-
-  h1,h2,h3,h4 { margin:0 0 8px 0; color:var(--foreground); font-weight:600; }
-  p { margin:0 0 14px 0; color:var(--foreground); font-size:15px; }
-
-  .messages {
-    display:flex; flex-direction:column; gap:18px; padding:18px;
-    border-radius:calc(var(--radius)+4px);
-    background: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0.28));
-    border: 1px solid rgba(13,59,42,0.03);
-  }
-
-  .message-row { display:flex; gap:14px; align-items:flex-start; }
-  .message-assistant {
-    max-width:78%; padding:18px; border-radius:18px;
-    background: linear-gradient(180deg, var(--green-leaf), rgba(217,237,197,0.9));
-    color: var(--green-forest); box-shadow:0 14px 36px rgba(13,59,42,0.05); border:1px solid rgba(13,59,42,0.06); font-size:15px;
-  }
-  .message-user {
-    max-width:78%; margin-left:auto; padding:16px; border-radius:18px; background:var(--white);
-    color:var(--charcoal); border:1px solid rgba(13,59,42,0.04); box-shadow:0 8px 18px rgba(13,59,42,0.03); font-size:15px;
-  }
-
-  .message-meta { font-size:12px; color:var(--stone-grey); margin-top:8px; }
-
-  .composer {
-    display:flex; align-items:center; gap:12px; padding:16px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.75));
-    border-radius: calc(var(--radius) + 6px); border:1px solid rgba(13,59,42,0.03);
-    box-shadow:0 8px 30px rgba(13,59,42,0.04);
-  }
-
-  .chat-textarea {
-    width:100%; min-height:48px; max-height:220px; padding:14px 16px; border-radius:12px; resize:none;
-    background: linear-gradient(180deg, var(--green-mint), rgba(236,247,232,0.92)); border:1px solid var(--input);
-    color:var(--foreground); font-size:15px; line-height:1.5; outline:none; transition: box-shadow 180ms ease, border-color 180ms ease, transform 120ms ease;
-  }
-  .chat-textarea:focus { box-shadow:0 8px 28px rgba(72,168,118,0.08); border-color:var(--green-moss); transform: translateY(-2px); }
-
-  .btn-send {
-    display:inline-flex; align-items:center; justify-content:center; min-width:46px; min-height:46px; padding:8px; border-radius:999px;
-    background: linear-gradient(180deg, var(--primary), var(--green-moss)); color:var(--primary-foreground); border:none;
-    box-shadow:0 12px 30px rgba(13,59,42,0.08); cursor:pointer; transition: transform 120ms ease, box-shadow 160ms ease;
-  }
-  .btn-send:hover { transform: translateY(-2px); box-shadow:0 18px 44px rgba(13,59,42,0.12); }
-
-  .sr-only { position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-}
-
-/* ----------------------------------
-   PAPER TEXTURE OVERLAY (on top of UI) — but behind core UI now
----------------------------------- */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  /* KEEP pointer-events none so interactions pass through */
-  pointer-events: none;
-
-  /* Place overlay visually behind primary UI layers */
-  z-index: 10;
-
-  background-image: url(var(--paper-url));
+  /* FIXED — REAL, CLEAN BACKGROUND */
+  background-image:
+    linear-gradient(180deg, var(--background), var(--background)),
+    var(--paper);
+  background-size: cover;
   background-repeat: repeat;
-  background-size: var(--paper-size);
-  background-position: center;
-
-  mix-blend-mode: var(--paper-blend);
-  opacity: var(--paper-opacity);
-
-  filter: contrast(0.95) brightness(0.98) saturate(0.95);
+  background-attachment: fixed;
 }
 
-/* Retina */
-@media only screen and (min-resolution: 2dppx) {
-  body::after { background-size: calc(var(--paper-size) / 2); }
+/* Remove broken overlay */
+body::after {
+  content: none !important;
 }
 
-/* ----------------------------------
-   Utility layer
----------------------------------- */
-@layer utilities {
-  .shadow-green-sm { box-shadow: 0 6px 14px rgba(13,59,42,0.06); }
-  .ring-ghost { box-shadow: 0 0 0 6px var(--ring); }
-  .border-subtle { border-color: var(--border); }
-  .bg-assistant { background: var(--green-leaf); }
-  .text-brand { color: var(--green-forest); }
-  .bg-brand { background: var(--primary); color: var(--primary-foreground); }
+/* CARDS (3 TILES) */
+.feature-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 26px;
+  box-shadow: var(--card-shadow);
+  transition: 0.2s ease;
+  cursor: pointer;
 }
 
-/* Responsive tweaks */
-@media (max-width: 1024px) {
-  .app-container { margin:20px; padding:18px; max-width:920px; }
-}
-@media (max-width: 640px) {
-  .app-container { margin:12px; padding:12px; }
-  .chat-header { padding:12px; }
-  .chat-textarea { min-height:42px; font-size:14px; }
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 50px rgba(0,0,0,0.12);
 }
 
-/* Dark-mode adjustments for overlay */
-.dark body::after {
-  mix-blend-mode: normal;
-  background-color: rgba(3,10,8,0.06);
-  background-blend-mode: multiply;
-  opacity: calc(var(--paper-opacity) * 0.9);
+/* CTA BUTTON (Get Started) */
+.cta-button {
+  background: #16a34a;
+  color: white;
+  padding: 14px 34px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: 0.2s;
 }
+
+.cta-button:hover {
+  background: #12803c;
+  transform: translateY(-2px);
+}
+
+/* Dark mode button fix */
+.dark .cta-button {
+  background: #1dbb63;
+  color: #0e0e0e;
+}
+
