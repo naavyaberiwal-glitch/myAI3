@@ -117,139 +117,136 @@ export default function Chat() {
 
   /* ---------------------- RENDER ---------------------- */
   return (
-    <div className="flex h-screen justify-center">
-      <main className="w-full h-screen relative">
-
-        {/* HEADER */}
-        <div className="fixed top-0 left-0 right-0 z-50 pb-16 bg-white dark:bg-black">
-          <ChatHeader>
-            <ChatHeaderBlock />
-            <ChatHeaderBlock className="justify-center items-center">
-              <div className="relative inline-block mr-4">
-                <Image
-                  src="/logo.png"
-                  width={60}
-                  height={60}
-                  alt="Greanly Avatar"
-                  className="rounded-full"
-                />
-                <span className="absolute bottom-1 right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+    <div className="app-container">
+      {/* TOP HEADER (floating card centered) */}
+      <div className="fixed inset-x-0 top-6 flex justify-center z-50 pointer-events-none">
+        <div className="w-full max-w-3xl px-4 pointer-events-auto">
+          <header className="chat-header soft-card">
+            <div className="brand-row">
+              <div className="chat-brand-badge">
+                <Image src="/logo.png" alt="Greanly" width={28} height={28} />
               </div>
-              <p>Chat with {AI_NAME}</p>
-            </ChatHeaderBlock>
+              <div>
+                <div className="brand-title">Greanly</div>
+                <div className="brand-sub">Clarity with care</div>
+              </div>
+            </div>
 
-            {/* Right controls: Theme toggle + New (clear) */}
-            <ChatHeaderBlock className="justify-end items-center space-x-3">
-              {/* Theme toggle (requires components/ui/theme-toggle.tsx) */}
+            <div className="flex items-center gap-3">
               <ThemeToggle />
-
               <Button variant="outline" size="sm" onClick={clearChat}>
                 {CLEAR_CHAT_TEXT}
               </Button>
-            </ChatHeaderBlock>
-          </ChatHeader>
-        </div>
-
-        {/* MESSAGES */}
-        <div className="h-screen overflow-y-auto px-5 py-4 pt-[88px] pb-[150px]">
-          <div className="flex flex-col items-center">
-            {isClient ? (
-              <>
-                <MessageWall
-                  messages={messages}
-                  status={status}
-                  durations={durations}
-                  onDurationChange={(k, d) =>
-                    setDurations((prev) => ({ ...prev, [k]: d }))
-                  }
-                />
-                {status === "submitted" && (
-                  <Loader2 className="size-4 animate-spin text-muted-foreground" />
-                )}
-              </>
-            ) : (
-              <Loader2 className="size-4 animate-spin text-muted-foreground" />
-            )}
-          </div>
-        </div>
-
-        {/* INPUT BAR */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-black pb-3 pt-13">
-          <div className="w-full px-5 flex justify-center">
-            <div className="max-w-3xl w-full">
-              <form onSubmit={form.handleSubmit(onSubmit)}>
-                <FieldGroup>
-                  <Controller
-                    name="message"
-                    control={form.control}
-                    render={({ field }) => (
-                      <Field>
-                        <FieldLabel className="sr-only">Message</FieldLabel>
-
-                        <div className="relative">
-
-                          <textarea
-                            {...field}
-                            ref={(el) => {
-                              field.ref(el);
-                              inputRef.current = el;
-                            }}
-                            id="chat-form-message"
-                            className="w-full min-h-[44px] max-h-[200px] resize-none overflow-y-auto pl-5 pr-20 py-3 rounded-[20px] bg-gray-100 dark:bg-zinc-900 text-sm"
-                            placeholder="Type your message…"
-                            disabled={status === "streaming"}
-                            onInput={(e) => {
-                              const ta = e.currentTarget;
-                              ta.style.height = "auto";
-                              ta.style.height = ta.scrollHeight + "px";
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                if (e.shiftKey) return; // allow newline
-                                e.preventDefault();
-                                form.handleSubmit(onSubmit)();
-                              }
-                            }}
-                          />
-
-                          {(status === "ready" || status === "error") && (
-                            <Button
-                              type="submit"
-                              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full"
-                              size="icon"
-                              disabled={!field.value.trim()}
-                            >
-                              <ArrowUp className="size-4" />
-                            </Button>
-                          )}
-
-                          {(status === "streaming" || status === "submitted") && (
-                            <Button
-                              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full"
-                              size="icon"
-                              onClick={() => stop()}
-                            >
-                              <Square className="size-4" />
-                            </Button>
-                          )}
-
-                        </div>
-                      </Field>
-                    )}
-                  />
-                </FieldGroup>
-              </form>
             </div>
-          </div>
+          </header>
+        </div>
+      </div>
 
-          <div className="text-xs text-center text-muted-foreground">
-            © {new Date().getFullYear()} {OWNER_NAME} ·{" "}
-            <Link href="/terms" className="underline">
-              Terms of Use
-            </Link>
+      {/* MAIN: messages area - centered column so paper shows around it */}
+      <main className="flex-1 flex items-start justify-center mt-[120px] mb-[120px]">
+        <div className="w-full max-w-3xl px-4">
+          <div className="messages soft-card" style={{ padding: 18 }}>
+            <div className="flex flex-col gap-6">
+              {isClient ? (
+                <>
+                  <MessageWall
+                    messages={messages}
+                    status={status}
+                    durations={durations}
+                    onDurationChange={(k, d) =>
+                      setDurations((prev) => ({ ...prev, [k]: d }))
+                    }
+                  />
+                  {status === "submitted" && (
+                    <div className="flex justify-center">
+                      <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="flex justify-center py-10">
+                  <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>
+
+      {/* BOTTOM composer (floating card centered) */}
+      <div className="fixed inset-x-0 bottom-6 flex justify-center z-50 pointer-events-none">
+        <div className="w-full max-w-3xl px-4 pointer-events-auto">
+          <div className="composer soft-card">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="w-full">
+              <FieldGroup>
+                <Controller
+                  name="message"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Field>
+                      <FieldLabel className="sr-only">Message</FieldLabel>
+
+                      <div className="relative">
+                        <textarea
+                          {...field}
+                          ref={(el) => {
+                            field.ref(el);
+                            inputRef.current = el;
+                          }}
+                          id="chat-form-message"
+                          className="chat-textarea"
+                          placeholder="Type your message…"
+                          disabled={status === "streaming"}
+                          onInput={(e) => {
+                            const ta = e.currentTarget;
+                            ta.style.height = "auto";
+                            ta.style.height = ta.scrollHeight + "px";
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              if (e.shiftKey) return; // allow newline
+                              e.preventDefault();
+                              form.handleSubmit(onSubmit)();
+                            }
+                          }}
+                        />
+
+                        {(status === "ready" || status === "error") && (
+                          <Button
+                            type="submit"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full"
+                            size="icon"
+                            disabled={!field.value.trim()}
+                          >
+                            <ArrowUp className="size-4" />
+                          </Button>
+                        )}
+
+                        {(status === "streaming" || status === "submitted") && (
+                          <Button
+                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full"
+                            size="icon"
+                            onClick={() => stop()}
+                          >
+                            <Square className="size-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </Field>
+                  )}
+                />
+              </FieldGroup>
+            </form>
+
+            <div className="w-full text-center text-xs text-muted-foreground mt-2">
+              © {new Date().getFullYear()} {OWNER_NAME} ·{" "}
+              <Link href="/terms" className="underline">
+                Terms of Use
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
