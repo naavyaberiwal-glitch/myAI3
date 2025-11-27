@@ -10,6 +10,7 @@ export default function WelcomePage() {
   useEffect(() => {
     // make sure any previous global overlays (if present) don't affect this page
     // (non-destructive: only removes inline-style overlay markers)
+    //comments
     try {
       const overlay = document.querySelector("body::after");
       // no-op: just ensuring nothing else crashes — actual overlay is managed in CSS
