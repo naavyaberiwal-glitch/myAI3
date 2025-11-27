@@ -50,7 +50,7 @@
    ------------------------ */
 :root {
   /* radii & spacing */
-  --radius: 0.875rem; /* 14px - slightly larger for premium softness */
+  --radius: 0.875rem;
   --space-xs: 6px;
   --space-sm: 10px;
   --space-md: 18px;
@@ -58,175 +58,97 @@
   --space-xl: 40px;
 
   /* brand colors */
-  --green-forest: #0D3B2A;   /* primary */
-  --green-leaf:   #D9EDC5;   /* assistant bubble */
-  --green-moss:   #14503B;   /* hover / accents */
-  --green-mint:   #ECF7E8;   /* soft surface */
-  --cream:         #F7F4E9;  /* highlight */
-  --earth-brown:  #7A6F5C;   /* optional accent */
+  --green-forest: #0D3B2A;
+  --green-leaf:   #D9EDC5;
+  --green-moss:   #14503B;
+  --green-mint:   #ECF7E8;
+  --cream:         #F7F4E9;
+  --earth-brown:  #7A6F5C;
 
-  /* neutral system */
+  /* neutrals */
   --charcoal:     #10201A;
   --stone-grey:   #6A6A6A;
   --light-grey:   #E9E9E6;
   --white:        #FFFFFF;
 
-  /* utility tokens */
-  --background-gradient-start: rgba(237,250,240,0.75); /* very light mint */
-  --background-gradient-end: rgba(245,252,248,0.95);   /* almost white */
+  /* background & UI tokens */
+  --background-gradient-start: rgba(237,250,240,0.75);
+  --background-gradient-end: rgba(245,252,248,0.95);
   --background:   var(--background-gradient-start);
   --foreground:   var(--charcoal);
   --card:         var(--white);
   --card-foreground: var(--charcoal);
-  --popover:      var(--white);
-  --popover-foreground: var(--charcoal);
 
   --primary:      var(--green-forest);
   --primary-foreground: var(--white);
   --secondary:    var(--green-moss);
   --secondary-foreground: var(--white);
 
-  --muted:        var(--light-grey);
-  --muted-foreground: var(--stone-grey);
-
-  --accent:       var(--cream);
-  --accent-foreground: var(--charcoal);
-
-  --destructive:  #D9534F;
-
-  /* subtle borders and surfaces */
-  --border:       rgba(13,59,42,0.06); /* subtle green tone */
+  --border:       rgba(13,59,42,0.06);
   --input:        rgba(13,59,42,0.04);
   --ring:         rgba(72,168,118,0.16);
 
-  /* chart fallbacks */
-  --chart-1: #14503B;
-  --chart-2: #0D3B2A;
-  --chart-3: #48A876;
-  --chart-4: #4BC2B2;
-  --chart-5: #D9EDC5;
-
-  /* sidebar tokens (kept for layout compatibility) */
-  --sidebar: var(--white);
-  --sidebar-foreground: var(--charcoal);
-  --sidebar-primary: var(--green-forest);
-  --sidebar-primary-foreground: var(--white);
-  --sidebar-accent: var(--green-mint);
-  --sidebar-accent-foreground: var(--charcoal);
-  --sidebar-border: rgba(13,59,42,0.06);
-  --sidebar-ring: rgba(13,59,42,0.08);
-
-  /* paper texture settings (file is at public/recycled-paper.png) */
-  --paper-texture: "/recycled-paper.png";
-  --paper-texture-2x: "/recycled-paper@2x.png";
-  --paper-opacity: 0.95;     /* stronger texture (increase for more visible) */
-  --paper-blend: multiply;   /* multiply = authentic recycled paper feel */
-  --paper-tile-size: 1200px 1200px; /* scale of the grain pattern */
+  /* paper texture settings (file at public/recycled-paper.png) */
+  --paper-url: "/recycled-paper.png?v=1";
+  --paper-opacity: 0.95;
+  --paper-blend: multiply;
+  --paper-size: 1200px 1200px;
 }
 
 /* Dark theme overrides */
 .dark {
   --background-gradient-start: rgba(6,23,18,0.8);
   --background-gradient-end: rgba(10,28,23,0.95);
-  --background: #071815; /* deep green-black */
+  --background: #071815;
   --foreground: #E7F5EE;
-  --card:         #0B2B22;
+  --card: #0B2B22;
   --card-foreground: #E7F5EE;
-  --popover:      #0B2B22;
-  --popover-foreground: #E7F5EE;
-
-  --primary:      #0B2B22; /* darker forest */
+  --primary: #0B2B22;
   --primary-foreground: #E7F5EE;
-  --secondary:    #14503B;
+  --secondary: #14503B;
   --secondary-foreground: #E7F5EE;
 
-  --muted:        #0E2A22;
-  --muted-foreground: #A6C9B5;
+  --border: rgba(255,255,255,0.04);
+  --input: rgba(255,255,255,0.02);
+  --ring: rgba(72,168,118,0.12);
 
-  --accent:       #0E2A22;
-  --accent-foreground: #E7F5EE;
-
-  --border:       rgba(255,255,255,0.04);
-  --input:        rgba(255,255,255,0.02);
-  --ring:         rgba(72,168,118,0.12);
-
-  --chart-1: #48A876;
-  --chart-2: #0D3B2A;
-  --chart-3: #4BC2B2;
-  --chart-4: #D9EDC5;
-  --chart-5: #7A6F5C;
-
-  --sidebar: #071815;
-  --sidebar-foreground: #E7F5EE;
-  --sidebar-primary: #48A876;
-  --sidebar-primary-foreground: #E7F5EE;
-  --sidebar-accent: #0D3B2A;
-  --sidebar-accent-foreground: #E7F5EE;
-  --sidebar-border: rgba(255,255,255,0.04);
-  --sidebar-ring: rgba(72,168,118,0.12);
+  --paper-url: "/recycled-paper.png?v=1";
+  --paper-opacity: 0.9;
+  --paper-blend: normal;
 }
 
 /* ------------------------
    Base layer (Tailwind + component mappings)
    ------------------------ */
 @layer base {
-  * {
-    box-sizing: border-box;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+  * { box-sizing: border-box; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
-  html, body, #__next {
-    height: 100%;
-  }
+  html, body, #__next { height: 100%; }
 
-  /* Layered background: gentle vertical gradient + paper texture (PNG from public/) */
+  /* Direct layered background: gradient + PNG texture (reliable) */
   body {
     font-family: var(--font-sans, Inter), system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
     color: var(--foreground);
     margin: 0;
     padding: 0;
 
-    /* gradient base (keeps your soft green brand) */
-    background-image:
-      linear-gradient(180deg, var(--background-gradient-start), var(--background-gradient-end));
-    background-repeat: no-repeat;
-    background-size: cover;
+    /* gradient first, then the texture */
+    background-image: 
+      linear-gradient(180deg, var(--background-gradient-start), var(--background-gradient-end)),
+      url(var(--paper-url));
+    background-repeat: no-repeat, repeat;
+    background-position: center, top left;
+    background-size: cover, var(--paper-size);
     background-attachment: fixed;
+    background-blend-mode: normal, var(--paper-blend);
+    background-color: var(--background);
     line-height: 1.52;
     position: relative;
     z-index: 0;
+    /* apply opacity to texture by using pseudo fallback if needed — but the direct layering should work */
   }
 
-  /* Paper texture applied as fixed pseudo-element for consistent tiling and strong visibility */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-
-    background-image: url(var(--paper-texture));
-    background-repeat: repeat;
-    background-position: top left;
-    background-size: var(--paper-tile-size);
-
-    mix-blend-mode: var(--paper-blend);
-    opacity: var(--paper-opacity);
-
-    /* slight adjustments to make the texture feel natural and rich */
-    filter: contrast(0.98) saturate(0.9) brightness(1.02);
-  }
-
-  /* Retina override: uses @2x if you add recycled-paper@2x.png */
-  @media only screen and (min-resolution: 2dppx) {
-    body::before {
-      background-image: image-set(url(var(--paper-texture-2x)) 2x, url(var(--paper-texture)) 1x);
-      background-size: calc(var(--paper-tile-size) / 2);
-    }
-  }
-
-  /* center & constrain app content to feel premium like a product page */
+  /* center & constrain app content */
   .app-container {
     max-width: 1100px;
     margin: 34px auto;
@@ -236,10 +158,11 @@
     flex-direction: column;
     gap: 20px;
     position: relative;
-    z-index: 1; /* keep above the texture */
+    z-index: 1; /* content above texture */
   }
 
-  /* card surfaces — tactile, paper-like */
+  /* rest of your UI tokens... (kept from earlier theme) */
+
   .soft-card {
     background: var(--card);
     color: var(--card-foreground);
@@ -249,294 +172,112 @@
     padding: var(--space-md);
   }
 
-  /* logo + header */
-  .brand-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 6px;
-  }
+  .brand-row { display:flex; align-items:center; gap:14px; margin-bottom:6px; }
 
   .chat-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 18px;
-    border-radius: calc(var(--radius) + 4px);
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:18px; border-radius:calc(var(--radius)+4px);
     background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.35));
     box-shadow: 0 10px 30px rgba(13,59,42,0.04);
     border: 1px solid var(--sidebar-border);
   }
 
-  /* brand badge */
   .chat-brand-badge {
-    width: 54px;
-    height: 54px;
-    min-width: 54px;
-    border-radius: 12px;
+    width:54px; height:54px; min-width:54px; border-radius:12px;
     background: linear-gradient(180deg, var(--primary), var(--secondary));
-    color: var(--primary-foreground);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 18px;
-    box-shadow: 0 12px 30px rgba(13,59,42,0.08);
-    border: 1px solid rgba(255,255,255,0.02);
+    color: var(--primary-foreground); display:inline-flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:18px; box-shadow: 0 12px 30px rgba(13,59,42,0.08);
+    border:1px solid rgba(255,255,255,0.02);
   }
 
-  .brand-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--foreground);
-    letter-spacing: -0.01em;
-  }
+  .brand-title { font-size:18px; font-weight:700; color:var(--foreground); letter-spacing:-0.01em; }
+  .brand-sub { font-size:13px; color:var(--stone-grey); }
 
-  .brand-sub {
-    font-size: 13px;
-    color: var(--stone-grey);
-  }
+  h1,h2,h3,h4 { margin:0 0 8px 0; color:var(--foreground); font-weight:600; }
+  p { margin:0 0 14px 0; color:var(--foreground); font-size:15px; }
 
-  /* global typography scale */
-  h1, h2, h3, h4 {
-    margin: 0 0 8px 0;
-    color: var(--foreground);
-    font-weight: 600;
-  }
-  p {
-    margin: 0 0 14px 0;
-    color: var(--foreground);
-    font-size: 15px;
-  }
-
-  /* suggestion chips — elevated and pill-like */
-  .suggestion-bar {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding: 8px 6px;
-    align-items: center;
-  }
+  .suggestion-bar { display:flex; gap:10px; overflow-x:auto; padding:8px 6px; align-items:center; }
 
   .suggestion-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-radius: 999px;
+    display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:999px;
     background: linear-gradient(180deg, var(--green-mint), var(--green-leaf));
-    color: var(--green-forest);
-    border: 1px solid rgba(20,80,59,0.06);
-    font-size: 14px;
-    box-shadow: 0 8px 20px rgba(13,59,42,0.03);
-    cursor: pointer;
-    transition: transform 160ms ease, background 200ms ease, color 160ms ease;
+    color: var(--green-forest); border:1px solid rgba(20,80,59,0.06);
+    font-size:14px; box-shadow:0 8px 20px rgba(13,59,42,0.03);
+    cursor:pointer; transition: transform 160ms ease, background 200ms ease, color 160ms ease;
   }
-  .suggestion-chip:hover {
-    transform: translateY(-3px);
-    background: linear-gradient(180deg, var(--green-moss), var(--green-forest));
-    color: var(--primary-foreground);
-  }
+  .suggestion-chip:hover { transform: translateY(-3px); background: linear-gradient(180deg, var(--green-moss), var(--green-forest)); color: var(--primary-foreground); }
 
-  /* message wall layout */
   .messages {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-md);
-    padding: var(--space-md);
-    border-radius: calc(var(--radius) + 4px);
+    display:flex; flex-direction:column; gap:var(--space-md); padding:var(--space-md);
+    border-radius:calc(var(--radius)+4px);
     background: linear-gradient(180deg, rgba(255,255,255,0.4), rgba(255,255,255,0.28));
     border: 1px solid rgba(13,59,42,0.03);
   }
 
-  .message-row {
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-  }
-
+  .message-row { display:flex; gap:14px; align-items:flex-start; }
   .message-assistant {
-    max-width: 78%;
-    padding: 18px;
-    border-radius: 18px;
+    max-width:78%; padding:18px; border-radius:18px;
     background: linear-gradient(180deg, var(--green-leaf), rgba(217,237,197,0.9));
-    color: var(--green-forest);
-    box-shadow: 0 14px 36px rgba(13,59,42,0.05);
-    border: 1px solid rgba(13,59,42,0.06);
-    font-size: 15px;
+    color: var(--green-forest); box-shadow:0 14px 36px rgba(13,59,42,0.05); border:1px solid rgba(13,59,42,0.06); font-size:15px;
   }
-
   .message-user {
-    max-width: 78%;
-    margin-left: auto;
-    padding: 16px;
-    border-radius: 18px;
-    background: var(--card);
-    color: var(--card-foreground);
-    border: 1px solid rgba(13,59,42,0.04);
-    box-shadow: 0 8px 18px rgba(13,59,42,0.03);
-    font-size: 15px;
+    max-width:78%; margin-left:auto; padding:16px; border-radius:18px; background:var(--card);
+    color:var(--card-foreground); border:1px solid rgba(13,59,42,0.04); box-shadow:0 8px 18px rgba(13,59,42,0.03); font-size:15px;
   }
 
-  .message-meta {
-    font-size: 12px;
-    color: var(--stone-grey);
-    margin-top: 8px;
-  }
+  .message-meta { font-size:12px; color:var(--stone-grey); margin-top:8px; }
 
-  /* input area / composer — glass-like, anchored */
   .composer {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px;
+    display:flex; align-items:center; gap:12px; padding:16px;
     background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.75));
-    border-radius: calc(var(--radius) + 6px);
-    border: 1px solid rgba(13,59,42,0.03);
-    box-shadow: 0 8px 30px rgba(13,59,42,0.04);
+    border-radius: calc(var(--radius) + 6px); border:1px solid rgba(13,59,42,0.03);
+    box-shadow:0 8px 30px rgba(13,59,42,0.04);
   }
 
   .chat-textarea {
-    width: 100%;
-    min-height: 48px;
-    max-height: 220px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    resize: none;
-    background: linear-gradient(180deg, var(--green-mint), rgba(236,247,232,0.92));
-    border: 1px solid var(--input);
-    color: var(--foreground);
-    font-size: 15px;
-    line-height: 1.5;
-    outline: none;
-    transition: box-shadow 180ms ease, border-color 180ms ease, transform 120ms ease;
+    width:100%; min-height:48px; max-height:220px; padding:14px 16px; border-radius:12px; resize:none;
+    background: linear-gradient(180deg, var(--green-mint), rgba(236,247,232,0.92)); border:1px solid var(--input);
+    color:var(--foreground); font-size:15px; line-height:1.5; outline:none; transition: box-shadow 180ms ease, border-color 180ms ease, transform 120ms ease;
   }
-  .chat-textarea:focus {
-    box-shadow: 0 8px 28px rgba(72,168,118,0.08);
-    border-color: var(--secondary);
-    transform: translateY(-2px);
-  }
+  .chat-textarea:focus { box-shadow:0 8px 28px rgba(72,168,118,0.08); border-color:var(--secondary); transform: translateY(-2px); }
 
-  /* primary button — circular icon button for send */
   .btn-send {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 46px;
-    min-height: 46px;
-    padding: 8px;
-    border-radius: 999px;
-    background: linear-gradient(180deg, var(--primary), var(--secondary));
-    color: var(--primary-foreground);
-    border: none;
-    box-shadow: 0 12px 30px rgba(13,59,42,0.08);
-    cursor: pointer;
-    transition: transform 120ms ease, box-shadow 160ms ease;
+    display:inline-flex; align-items:center; justify-content:center; min-width:46px; min-height:46px; padding:8px; border-radius:999px;
+    background: linear-gradient(180deg, var(--primary), var(--secondary)); color:var(--primary-foreground); border:none;
+    box-shadow:0 12px 30px rgba(13,59,42,0.08); cursor:pointer; transition: transform 120ms ease, box-shadow 160ms ease;
   }
-  .btn-send:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 18px 44px rgba(13,59,42,0.12);
-  }
+  .btn-send:hover { transform: translateY(-2px); box-shadow:0 18px 44px rgba(13,59,42,0.12); }
 
-  /* subtle typing indicator */
-  .typing-indicator {
-    display: inline-flex;
-    gap: 8px;
-    align-items: center;
-  }
-  .typing-indicator .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 9999px;
-    background: var(--green-moss);
-    opacity: 0.95;
-    animation: typing-dot 1s infinite linear;
-  }
-  .typing-indicator .dot:nth-child(2) { animation-delay: 0.12s; }
-  .typing-indicator .dot:nth-child(3) { animation-delay: 0.24s; }
-  @keyframes typing-dot {
-    0% { transform: translateY(0); opacity: 0.6; }
-    50% { transform: translateY(-6px); opacity: 1; }
-    100% { transform: translateY(0); opacity: 0.6; }
-  }
+  .typing-indicator { display:inline-flex; gap:8px; align-items:center; }
+  .typing-indicator .dot { width:7px; height:7px; border-radius:9999px; background:var(--green-moss); opacity:0.95; animation: typing-dot 1s infinite linear; }
+  .typing-indicator .dot:nth-child(2) { animation-delay:0.12s; } .typing-indicator .dot:nth-child(3) { animation-delay:0.24s; }
+  @keyframes typing-dot { 0% { transform: translateY(0); opacity:0.6; } 50% { transform: translateY(-6px); opacity:1; } 100% { transform: translateY(0); opacity:0.6; } }
 
-  /* smaller utility & accessibility tweaks */
-  .sr-only {
-    position: absolute !important;
-    width: 1px; height: 1px;
-    padding: 0; margin: -1px; overflow: hidden;
-    clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
-  }
+  .sr-only { position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 
-  /* keep your existing single-char-link but richer */
-  .single-char-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: var(--card);
-    color: var(--card-foreground);
-    border: 1px solid var(--input);
-    font-weight: 600;
-    transition: transform 140ms ease, box-shadow 140ms ease;
-  }
-  .single-char-link:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(13,59,42,0.05); }
+  .single-char-link { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; background:var(--card); color:var(--card-foreground); border:1px solid var(--input); font-weight:600; transition: transform 140ms ease, box-shadow 140ms ease; }
+  .single-char-link:hover { transform: translateY(-3px); box-shadow:0 8px 24px rgba(13,59,42,0.05); }
 }
 
 /* ------------------------
    Helper classes (layer utilities)
    ------------------------ */
 @layer utilities {
-  .shadow-green-sm {
-    box-shadow: 0 6px 14px rgba(13,59,42,0.04);
-  }
-  .ring-ghost {
-    box-shadow: 0 0 0 6px var(--ring);
-  }
-  .border-subtle {
-    border-color: var(--sidebar-border);
-  }
-  .bg-assistant {
-    background: var(--green-leaf);
-  }
-  .text-brand {
-    color: var(--green-forest);
-  }
-  .bg-brand {
-    background: var(--primary);
-    color: var(--primary-foreground);
-  }
-  .bg-surface {
-    background: var(--green-mint);
-  }
+  .shadow-green-sm { box-shadow: 0 6px 14px rgba(13,59,42,0.04); }
+  .ring-ghost { box-shadow: 0 0 0 6px var(--ring); }
+  .border-subtle { border-color: var(--sidebar-border); }
+  .bg-assistant { background: var(--green-leaf); }
+  .text-brand { color: var(--green-forest); }
+  .bg-brand { background: var(--primary); color: var(--primary-foreground); }
+  .bg-surface { background: var(--green-mint); }
 
-  /* utility to apply the paper noise directly to elements if needed */
-  .paper-noise {
-    background-image: url("/recycled-paper.png");
-    background-repeat: repeat;
-    background-size: var(--paper-tile-size);
-    opacity: 0.9;
-  }
+  /* apply paper texture to elements if needed */
+  .paper-noise { background-image: url("/recycled-paper.png?v=1"); background-repeat: repeat; background-size: var(--paper-size); opacity: 0.95; }
 }
 
 /* responsive fine-tuning */
-@media (max-width: 1024px) {
-  .app-container { margin: 20px; padding: 18px; max-width: 920px; }
-  .chat-brand-badge { width: 48px; height: 48px; min-width: 48px; }
-}
-@media (max-width: 640px) {
-  .app-container { margin: 12px; padding: 12px; }
-  .chat-header { padding: 12px; }
-  .messages { padding: 12px; }
-  .chat-textarea { min-height: 42px; font-size: 14px; }
-}
+@media (max-width: 1024px) { .app-container { margin:20px; padding:18px; max-width:920px; } .chat-brand-badge { width:48px; height:48px; min-width:48px; } }
+@media (max-width: 640px) { .app-container { margin:12px; padding:12px; } .chat-header { padding:12px; } .messages { padding:12px; } .chat-textarea { min-height:42px; font-size:14px; } }
 
-/* Dark-mode texture adjustments */
-.dark body::before {
-  mix-blend-mode: normal;
-  background-color: rgba(3,10,8,0.07);
-  background-blend-mode: multiply;
-  opacity: calc(var(--paper-opacity) * 0.9);
-}
+/* dark-mode texture slight change (keeps texture visible in dark) */
+.dark body { background-blend-mode: normal; }
