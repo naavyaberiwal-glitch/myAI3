@@ -1,7 +1,7 @@
 // components/parts/sidebar.tsx
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ArchiveBox, Plus, Clock, ChevronLeft } from "lucide-react";
+import { ArchiveX, Plus, Clock, ChevronLeft } from "lucide-react";
 
 type ChatSummary = {
   id: string;
@@ -116,7 +116,7 @@ export function Sidebar({
                     title="Load chat"
                     onClick={() => onLoadChat(h.id)}
                   >
-                    <ArchiveBox size={16} />
+                    <ArchiveX size={16} />
                   </Button>
                   <Button
                     size="icon"
