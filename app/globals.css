@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 
 /* Custom dark variant (keeps compatibility with your setup) */
+/* Custom dark variant (keeps compatibility with your setup) */
 @custom-variant dark (&:is(.dark *));
 
 /* Theme mapping (keeps tokens intact for Tailwind components) */
